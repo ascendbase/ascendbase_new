@@ -48,7 +48,14 @@ export default function SupportPage() {
         return;
       }
       const sub = me.subscription;
-      if (sub && sub.status === "active" && sub.planKey && sub.planKey !== "free") {
+      // Personal context is ONLY for the 49 (advice) and 99 (coaching)
+      // tiers. Free and 19 (vault) users see the same generic
+      // support page as everyone else.
+      if (
+        sub &&
+        sub.status === "active" &&
+        (sub.planKey === "advice" || sub.planKey === "coaching")
+      ) {
         const p = getPlan(sub.planKey);
         if (p) setPlanName(p.name);
       }

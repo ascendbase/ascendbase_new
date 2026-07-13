@@ -312,11 +312,7 @@ export default function DashboardPage() {
             <Link href="/checkout">
               <PrimaryButton>Unlock full vault →</PrimaryButton>
             </Link>
-          ) : (
-            <Link href="/support">
-              <PrimaryButton>Message support</PrimaryButton>
-            </Link>
-          )}
+          ) : null}
         </div>
 
         {err && <p className="mb-4 text-red-glow">{err}</p>}

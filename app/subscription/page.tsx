@@ -84,9 +84,11 @@ export default function SubscriptionPage() {
                 <Link href="/dashboard">
                   <PrimaryButton>Open the vault</PrimaryButton>
                 </Link>
-                <Link href="/support">
-                  <PrimaryButton tone="green">Your Personal line</PrimaryButton>
-                </Link>
+                {(sub!.planKey === "advice" || sub!.planKey === "coaching") && (
+                  <Link href="/support">
+                    <PrimaryButton tone="green">Your Personal line</PrimaryButton>
+                  </Link>
+                )}
               </div>
             </div>
           ) : isPending ? (

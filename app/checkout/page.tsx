@@ -122,10 +122,20 @@ export default function CheckoutPage() {
   async function simulate() {
     if (!invoice) return;
     setBusy(true);
+    const me = await fetch("/api/auth/me").then((r) =>
+      r.ok ? r.json() : null
+    );
     const r = await fetch("/api/checkout/simulate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId: invoice.orderId }),
+      body: JSON.stringify({
+        orderId: invoice.orderId,
+        amount: invoice.amount,
+        planKey: selPlan,
+        coin: invoice.coin,
+        net: invoice.net,
+        userId: me?.user?.id,
+      }),
     });
     setBusy(false);
     if (r.ok) router.replace("/dashboard");
@@ -172,7 +182,11 @@ export default function CheckoutPage() {
       <Container className="max-w-lg py-16">
           <div className="mb-8 text-center">
           <h1 className="mt-4 text-3xl font-black tracking-tight">
-            Unlock the vault
+            {upgradeFrom
+              ? "Upgrade your plan"
+              : selPlan === "free"
+              ? "Unlock the vault"
+              : (getPlan(selPlan)?.name || "Unlock the vault")}
           </h1>
         </div>
 
@@ -475,6 +489,10 @@ export default function CheckoutPage() {
                         body: JSON.stringify({
                           orderId: invoice.orderId,
                           txHash: txHash.trim(),
+                          amount: invoice.amount,
+                          planKey: selPlan,
+                          coin: invoice.coin,
+                          net: invoice.net,
                         }),
                       });
                       setBusy(false);

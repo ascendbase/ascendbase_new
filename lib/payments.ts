@@ -85,6 +85,14 @@ export type Invoice = {
 
 const B58 = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
+/**
+ * Build an invoice (address + amount + unique order id) for the member to
+ * pay. IMPORTANT: this does NOT create a subscription row yet — the pending
+ * sub is only written to the DB once the member actually submits their
+ * transaction hash (see createPendingSubscription / /api/checkout/confirm).
+ * That way nothing shows in your admin panel and no "awaiting verification"
+ * state appears until the user has genuinely sent the payment proof.
+ */
 export async function createInvoice(opts: {
   userId: number;
   amount: number;
@@ -95,7 +103,6 @@ export async function createInvoice(opts: {
 }): Promise<Invoice> {
   const orderId =
     "ab_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
-  const plan = opts.planKey || (process.env.ACCESS_DAYS || "30") + "d";
   const nets = getNetworks();
 
   if (nets.length === 0) {
@@ -103,10 +110,6 @@ export async function createInvoice(opts: {
     const address =
       "T" +
       Array.from({ length: 33 }, () => B58[Math.floor(Math.random() * B58.length)]).join("");
-    await db.execute({
-      sql: "INSERT INTO subscriptions (user_id, status, plan, amount, coin, network, plan_key, order_id) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)",
-      args: [opts.userId, plan, opts.amount, "USDT", "TRC20(sandbox)", opts.planKey || null, orderId],
-    });
     return {
       orderId,
       amount: opts.amount,
@@ -123,10 +126,6 @@ export async function createInvoice(opts: {
 
   const chosen =
     nets.find((n) => n.coin === opts.coin && n.net === opts.net) || nets[0];
-  await db.execute({
-    sql: "INSERT INTO subscriptions (user_id, status, plan, amount, coin, network, plan_key, order_id) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)",
-    args: [opts.userId, plan, opts.amount, chosen.coin, chosen.net, opts.planKey || null, orderId],
-  });
   return {
     orderId,
     amount: opts.amount,
@@ -145,6 +144,36 @@ export async function createInvoice(opts: {
     status: "pending",
     planKey: opts.planKey,
   };
+}
+
+/**
+ * Write the pending subscription row — called ONLY when the member submits
+ * their transaction hash, i.e. after they've actually sent the payment.
+ * This is what makes the request appear in your admin Payments panel.
+ */
+export async function createPendingSubscription(opts: {
+  userId: number;
+  orderId: string;
+  amount: number;
+  planKey?: string;
+  coin: string;
+  net: string;
+  txHash?: string;
+}): Promise<void> {
+  const plan = opts.planKey || (process.env.ACCESS_DAYS || "30") + "d";
+  await db.execute({
+    sql: "INSERT INTO subscriptions (user_id, status, plan, amount, coin, network, plan_key, order_id, tx_hash) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?)",
+    args: [
+      opts.userId,
+      plan,
+      opts.amount,
+      opts.coin,
+      opts.net,
+      opts.planKey || null,
+      opts.orderId,
+      opts.txHash || null,
+    ],
+  });
 }
 
 /** Grant access. Used by the admin verify action and (later) by webhooks. */

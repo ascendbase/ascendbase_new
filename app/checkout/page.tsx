@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard, PrimaryButton, GhostButton, Badge } from "@/components/ui";
-import { PLANS } from "@/lib/plans";
+import { PLANS, FREE_PLAN, getPlan, type Plan } from "@/lib/plans";
 
 type Network = { coin: string; net: string; address: string; memoSupported: boolean };
 type Invoice = {
@@ -25,7 +25,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [state, setState] = useState<"loading" | "ready">("loading");
   const [invoice, setInvoice] = useState<Invoice | null>(null);
-  const [selPlan, setSelPlan] = useState<string>(PLANS[0].key);
+  const [selPlan, setSelPlan] = useState<string>("free");
   const [selNet, setSelNet] = useState<Network | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -68,6 +68,18 @@ export default function CheckoutPage() {
         ? data.networks[0]
         : { coin: data.coin, net: data.net, address: data.address, memoSupported: false }
     );
+  }
+
+  async function activateFree() {
+    setBusy(true);
+    setError("");
+    const r = await fetch("/api/checkout/free", { method: "POST" });
+    setBusy(false);
+    if (r.ok) router.replace("/dashboard");
+    else {
+      const d = await r.json().catch(() => ({}));
+      setError(d.error || "Could not activate free access.");
+    }
   }
 
   function currentNet(): Network {
@@ -150,6 +162,24 @@ export default function CheckoutPage() {
                 </p>
               </div>
               <div className="space-y-3">
+                <button
+                  key={FREE_PLAN.key}
+                  onClick={() => setSelPlan(FREE_PLAN.key)}
+                  className={`w-full rounded-2xl border p-4 text-left transition ${
+                    selPlan === FREE_PLAN.key
+                      ? "border-green/60 bg-green/10"
+                      : "border-white/10 hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold">{FREE_PLAN.name}</span>
+                    <span className="text-xl font-black text-green-glow">Free</span>
+                  </div>
+                  <p className="mt-1 text-sm text-white/50">
+                    Some vault content is open to everyone. Start here, upgrade
+                    anytime with crypto.
+                  </p>
+                </button>
                 {PLANS.map((p) => (
                   <button
                     key={p.key}
@@ -181,10 +211,14 @@ export default function CheckoutPage() {
               <PrimaryButton
                 tone="green"
                 className="w-full"
-                onClick={generate}
+                onClick={selPlan === "free" ? activateFree : generate}
                 disabled={busy}
               >
-                {busy ? "Generating…" : "Continue to payment"}
+                {busy
+                  ? "Generating…"
+                  : (selPlan === "free"
+                      ? FREE_PLAN.cta
+                      : (getPlan(selPlan)?.cta || "Continue to payment"))}
               </PrimaryButton>
             </div>
           ) : paid ? (

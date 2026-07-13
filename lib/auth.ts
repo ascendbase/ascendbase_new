@@ -64,7 +64,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
 export async function getActiveSubscription(userId: number) {
   const r = await db.execute({
-    sql: "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active' AND expires_at > datetime('now') ORDER BY expires_at DESC LIMIT 1",
+    sql: "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active' AND expires_at > datetime('now') AND plan_key != 'free' ORDER BY expires_at DESC LIMIT 1",
     args: [userId],
   });
   return r.rows[0] || null;

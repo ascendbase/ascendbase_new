@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 
 export default function SiteNav() {
   const [user, setUser] = useState<{ id: number; email: string; role: string } | null>(null);
+  const [planKey, setPlanKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -13,7 +14,16 @@ export default function SiteNav() {
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setUser(d?.user || null))
+      .then((d) => {
+        setUser(d?.user || null);
+        const sub = d?.subscription;
+        // Active PAID user (plan_key is a real plan, not "free") → show "Personal".
+        if (sub && sub.status === "active" && sub.planKey && sub.planKey !== "free") {
+          setPlanKey(sub.planKey);
+        } else {
+          setPlanKey(null);
+        }
+      })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
@@ -41,9 +51,15 @@ export default function SiteNav() {
 
         <div className="flex items-center gap-3 sm:gap-5">
           {user ? (
-            <Link href="/checkout" className={`hidden sm:block ${linkCls("/checkout")}`}>
-              Full access
-            </Link>
+            planKey ? (
+              <Link href="/support" className={`hidden sm:block ${linkCls("/support")}`}>
+                Personal
+              </Link>
+            ) : (
+              <Link href="/checkout" className={`hidden sm:block ${linkCls("/checkout")}`}>
+                Full access
+              </Link>
+            )
           ) : (
             <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")}`}>
               Benefits
@@ -58,9 +74,15 @@ export default function SiteNav() {
               <Link href="/dashboard" className={linkCls("/dashboard")}>
                 Vault
               </Link>
-              <Link href="/support" className={linkCls("/support")}>
-                Support
-              </Link>
+              {planKey ? (
+                <Link href="/support" className={linkCls("/support")}>
+                  Personal
+                </Link>
+              ) : (
+                <Link href="/support" className={linkCls("/support")}>
+                  Support
+                </Link>
+              )}
               {user.role === "admin" && (
                 <Link href="/admin" className={linkCls("/admin")}>
                   Admin

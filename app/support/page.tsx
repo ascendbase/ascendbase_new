@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard, PrimaryButton, Input, Label, Badge } from "@/components/ui";
+import { getPlan } from "@/lib/plans";
 
 type Thread = { id: number; subject: string | null; status: string; updated_at: string };
 type Msg = { id: number; sender: string; body: string; image_url: string | null; created_at: string };
@@ -20,6 +21,7 @@ export default function SupportPage() {
   const [busy, setBusy] = useState(false);
   const [upying, setUpying] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
+  const [planName, setPlanName] = useState<string | null>(null);
 
   async function uploadImage(file: File) {
     setUpying(true);
@@ -44,6 +46,11 @@ export default function SupportPage() {
       if (me.user.role === "admin") {
         router.replace("/admin");
         return;
+      }
+      const sub = me.subscription;
+      if (sub && sub.status === "active" && sub.planKey && sub.planKey !== "free") {
+        const p = getPlan(sub.planKey);
+        if (p) setPlanName(p.name);
       }
       const t = await fetch("/api/support").then((r) =>
         r.ok ? r.json() : null
@@ -102,10 +109,19 @@ export default function SupportPage() {
     <>
       <SiteNav />
       <Container className="py-12">
-        <h1 className="text-3xl font-black tracking-tight">Support</h1>
+        <h1 className="text-3xl font-black tracking-tight">
+          {planName ? "Your Personal Line" : "Support"}
+        </h1>
         <p className="mt-1 text-white/55">
-          Message me directly — I read every thread.
+          {planName
+            ? `This is your ${planName} channel — message me directly and I'll get back to you.`
+            : "Message me directly — I read every thread."}
         </p>
+        {planName && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-green/15 px-4 py-1.5 text-sm font-semibold text-green-glow">
+            <span>✨</span> {planName} active
+          </div>
+        )}
         <div className="mt-6 grid gap-4 md:grid-cols-[280px_1fr]">
           <div className="space-y-2">
             <PrimaryButton

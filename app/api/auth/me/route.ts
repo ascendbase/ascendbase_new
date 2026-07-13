@@ -12,7 +12,12 @@ export async function GET() {
   return NextResponse.json({
     user,
     subscription: sub
-      ? { status: sub.status, expiresAt: sub.expires_at, plan: sub.plan }
+      ? {
+          status: sub.status,
+          expiresAt: sub.expires_at,
+          plan: sub.plan,
+          planKey: sub.plan_key,
+        }
       : null,
   });
 }

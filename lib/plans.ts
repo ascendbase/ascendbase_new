@@ -6,6 +6,14 @@ export type Plan = {
   days: number;
   description: string;
   features: string[];
+  cta: string;
+};
+
+/** The implicit free tier (sign-up). Not a paid plan. */
+export const FREE_PLAN = {
+  key: "free",
+  name: "Free Access",
+  cta: "Continue for free",
 };
 
 /**
@@ -25,6 +33,7 @@ export const PLANS: Plan[] = [
       "Browse the complete knowledge base any time",
       "30 days of access, re-pay to extend",
     ],
+    cta: "Unlock full vault access",
   },
   {
     key: "advice",
@@ -39,6 +48,7 @@ export const PLANS: Plan[] = [
       "Full explanation of your facial status, with a Q&A option until you 100% understand the meaning behind every detail",
       "Full access to the gated vault for 30 days as a bonus",
     ],
+    cta: "Unlock personal plan",
   },
   {
     key: "coaching",
@@ -53,6 +63,7 @@ export const PLANS: Plan[] = [
       "Direct contact and ongoing guidance",
       "Full access to the gated vault while coaching is active",
     ],
+    cta: "Unlock personal coaching",
   },
 ];
 

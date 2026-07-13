@@ -47,7 +47,7 @@ export default function SignupPage() {
         setBusy(false);
         return;
       }
-      router.push("/checkout");
+      router.push("/dashboard");
     } catch {
       setError("Network error. Please try again.");
       setBusy(false);

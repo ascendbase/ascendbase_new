@@ -699,8 +699,20 @@ function PaymentsTab() {
         you’ve seen the transfer arrive in your wallet, click{" "}
         <span className="text-red-glow">Verify &amp; grant</span>.
       </p>
-      {payments.map((p) => {
+          {payments.map((p) => {
         const plan = PLANS.find((pl: Plan) => pl.key === p.plan_key);
+        // Build a block-explorer link from the user-submitted TX hash so
+        // you can confirm the exact transfer that matches this user.
+        const explorer =
+          p.tx_hash && p.coin === "USDT" && /tron/i.test(p.network || "")
+            ? `https://tronscan.org/#/transaction/${p.tx_hash}`
+            : p.tx_hash && /btc/i.test(p.coin || p.network || "")
+            ? `https://www.blockchain.com/btc/tx/${p.tx_hash}`
+            : p.tx_hash && /eth|erc/i.test(p.coin || p.network || "")
+            ? `https://etherscan.io/tx/${p.tx_hash}`
+            : p.tx_hash && /sol/i.test(p.coin || p.network || "")
+            ? `https://solscan.io/tx/${p.tx_hash}`
+            : null;
         return (
         <GlassCard key={p.order_id} className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -723,8 +735,34 @@ function PaymentsTab() {
               ref: {p.order_id}
             </span>
           </div>
+          <div className="rounded-xl bg-white/5 p-3">
+            <div className="text-xs text-white/45">
+              User-submitted transaction hash (proof of payment)
+            </div>
+            {p.tx_hash ? (
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <span className="break-all font-mono text-sm text-white/80">
+                  {p.tx_hash}
+                </span>
+                {explorer && (
+                  <a
+                    href={explorer}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 rounded-md bg-green/15 px-2 py-1 text-xs font-semibold text-green-glow hover:bg-green/25"
+                  >
+                    View on explorer ↗
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-red-glow">
+                ⚠ No TX hash submitted yet — user has NOT sent proof of payment.
+              </p>
+            )}
+          </div>
           <div>
-            <Label>Transaction hash / note (optional, for your records)</Label>
+            <Label>Note / override TX hash (optional)</Label>
             <Input
               value={tx[p.order_id] || ""}
               onChange={(e) =>

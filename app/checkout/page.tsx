@@ -201,14 +201,6 @@ export default function CheckoutPage() {
                 owner verifies the transfer in their wallet (usually within a few
                 hours). This page refreshes automatically once it’s confirmed.
               </p>
-              {pendingRef && (
-                <div className="rounded-xl bg-white/5 p-3 text-left">
-                  <div className="text-xs text-white/45">Your reference</div>
-                  <div className="mt-1 break-all font-mono text-sm text-white/80">
-                    {pendingRef}
-                  </div>
-                </div>
-              )}
               <div className="flex items-center justify-center gap-2 text-sm text-white/50">
                 <span className="spin inline-block h-4 w-4 rounded-full border-2 border-white/20 border-t-green-soft" />
                 Waiting for verification…
@@ -312,18 +304,6 @@ export default function CheckoutPage() {
                 access shortly. This page refreshes automatically once it’s
                 confirmed — no need to do anything else.
               </p>
-              {invoice && (
-                <div className="rounded-xl bg-white/5 p-3 text-left">
-                  <div className="text-xs text-white/45">Your reference</div>
-                  <div className="mt-1 break-all font-mono text-sm text-white/80">
-                    {invoice.reference}
-                  </div>
-                  <p className="mt-2 text-xs text-white/40">
-                    Include this in the memo if your wallet allows, so the owner
-                    can match your payment instantly.
-                  </p>
-                </div>
-              )}
               <div className="flex items-center justify-center gap-2 text-sm text-white/50">
                 <span className="spin inline-block h-4 w-4 rounded-full border-2 border-white/20 border-t-green-soft" />
                 Waiting for verification…
@@ -381,30 +361,6 @@ export default function CheckoutPage() {
                   </button>
                 </div>
               </div>
-
-              <div>
-                <span className="text-sm text-white/60">
-                  Your reference (include in the memo if your wallet allows)
-                </span>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="break-all rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-sm">
-                    {invoice.reference}
-                  </div>
-                  <button
-                    onClick={() => copy(invoice.reference)}
-                    className="shrink-0 rounded-xl border border-white/10 px-3 py-2 text-xs hover:bg-white/5"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
-
-              {net.memoSupported && (
-                <p className="rounded-xl bg-white/5 p-3 text-xs text-white/50">
-                  This network supports a memo — set it to your reference above
-                  so the owner can match your payment instantly.
-                </p>
-              )}
 
               {invoice.sandbox ? (
                 <>

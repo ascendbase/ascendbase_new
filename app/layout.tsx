@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ascendbase — Premium Knowledge, Gated by Crypto",
+  title: "ascendbase — Start Patching Looksmaxing Matrix",
   description:
     "An educational resource with paid crypto access. Sign up, pay with crypto from any wallet, unlock the vault.",
 };

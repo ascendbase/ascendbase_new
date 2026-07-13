@@ -234,3 +234,32 @@ a {
     transform: translateY(0);
   }
 }
+
+/* ---- Vault tree indentation (mobile-safe) ----
+   Desktop keeps the original 16px-per-level indent. On phones the
+   indentation is capped and shrunk so deeply-nested posts don't get
+   squeezed into a sliver. */
+.tree-indent {
+  padding-left: calc(var(--d, 0) * 16px);
+}
+.tree-content {
+  margin-left: calc((var(--d, 0) + 1) * 16px);
+  margin-right: 12px;
+}
+@media (max-width: 640px) {
+  .tree-indent {
+    padding-left: calc(min(var(--d, 0), 4) * 10px);
+  }
+  .tree-content {
+    margin-left: calc(min((var(--d, 0) + 1), 5) * 10px);
+    margin-right: 8px;
+  }
+  /* Full-bleed, never-clipped images on small screens. */
+  .vault-img {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 70vh;
+    object-fit: contain;
+  }
+}

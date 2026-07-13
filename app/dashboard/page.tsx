@@ -40,7 +40,7 @@ function BlockView({ b }: { b: Block }) {
         <img
           src={b.url}
           alt={b.caption || ""}
-          className="max-h-[420px] w-full max-w-2xl rounded-2xl object-contain"
+          className="vault-img max-h-[420px] w-full max-w-2xl rounded-2xl object-contain"
           loading="lazy"
         />
         {b.caption && (
@@ -150,15 +150,14 @@ export default function DashboardPage() {
   function renderTree(parentId: number | null, depth: number): React.ReactNode {
     const kids = childrenOf.get(parentId) || [];
     return kids.map((n) => {
-      const indent = { paddingLeft: `${depth * 16}px` };
       if (n.kind === "folder") {
         const open = openFolders.has(n.id);
         return (
           <div key={n.id}>
             <button
               onClick={() => toggleFolder(n.id)}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-white/80 hover:bg-white/5"
-              style={indent}
+              className="tree-indent flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-white/80 hover:bg-white/5"
+              style={{ ["--d" as any]: depth }}
             >
               <span className="text-white/40">{open ? "▾" : "▸"}</span>
               <span className="text-base">{open ? "📂" : "📁"}</span>
@@ -175,8 +174,8 @@ export default function DashboardPage() {
         <div key={n.id}>
           <button
             onClick={() => togglePost(n.id)}
-            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-white/70 hover:bg-white/5"
-            style={indent}
+            className="tree-indent flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-white/70 hover:bg-white/5"
+            style={{ ["--d" as any]: depth }}
           >
             <span className="text-white/40">{open ? "▾" : "▸"}</span>
             <span>📄</span>
@@ -184,8 +183,8 @@ export default function DashboardPage() {
           </button>
           {open && (
             <div
-              className="my-2 rounded-2xl border border-white/10 bg-black/30 p-4"
-              style={{ marginLeft: `${(depth + 1) * 16}px`, marginRight: 12 }}
+              className="tree-content my-2 rounded-2xl border border-white/10 bg-black/30 p-4"
+              style={{ ["--d" as any]: depth }}
             >
               {postLoading === n.id && (
                 <p className="text-sm text-white/40">Loading…</p>
@@ -206,7 +205,7 @@ export default function DashboardPage() {
                       <img
                         src={data.image_data}
                         alt=""
-                        className="h-44 w-full rounded-2xl object-cover"
+                        className="vault-img h-44 w-full rounded-2xl object-cover"
                       />
                     ) : (
                       <p className="text-sm text-white/55">{data.body || ""}</p>
@@ -262,7 +261,7 @@ export default function DashboardPage() {
                         <img
                           src={data.image_data}
                           alt={data.title}
-                          className="h-44 w-full rounded-2xl object-cover"
+                          className="vault-img h-44 w-full rounded-2xl object-cover"
                         />
                       )}
                       <p className="whitespace-pre-wrap text-sm text-white/55">

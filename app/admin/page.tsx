@@ -60,17 +60,32 @@ type UserRow = {
   sub_status: string | null;
   sub_expires: string | null;
   sub_plan_key: string | null;
+  sub_amount: number | null;
 };
 
-function planLabel(key: string | null, status: string | null): string {
+function planLabel(
+  key: string | null,
+  status: string | null,
+  amount?: number | null
+): string {
+  // Resolve the plan: prefer plan_key, otherwise match by the stored
+  // amount (handles legacy pending rows with a NULL plan_key).
+  const byKey = key ? PLANS.find((pl) => pl.key === key) : null;
+  const byAmount =
+    !byKey && amount != null
+      ? PLANS.find((pl) => pl.price === amount)
+      : null;
+  const plan = byKey || byAmount;
   if (status === "pending") {
-    const p = key ? PLANS.find((pl) => pl.key === key) : null;
-    return p ? `Pending: ${p.price} USDT · ${p.name}` : "Pending payment";
+    return plan
+      ? `Pending: ${plan.price} USDT · ${plan.name}`
+      : amount != null
+      ? `Pending: ${amount} USDT`
+      : "Pending payment";
   }
   if (status === "active") {
-    if (!key || key === "free") return "Free";
-    const p = PLANS.find((pl) => pl.key === key);
-    return p ? `${p.price} USDT · ${p.name}` : (key || "Paid");
+    if (!plan) return "Free";
+    return `${plan.price} USDT · ${plan.name}`;
   }
   return "No subscription";
 }
@@ -940,7 +955,7 @@ function UsersTab() {
   return (
     <div className="space-y-3">
       {users.map((u) => {
-        const purchased = planLabel(u.sub_plan_key, u.sub_status);
+        const purchased = planLabel(u.sub_plan_key, u.sub_status, u.sub_amount);
         const sel = grantPlans[u.id] || u.sub_plan_key || PLANS[0].key;
         return (
         <GlassCard key={u.id} className="flex flex-wrap items-center gap-3">

@@ -908,11 +908,11 @@ function UsersTab() {
       .then((d) => d && setUsers(d.users || []));
   }, []);
 
-  async function act(id: number, action: "grant" | "revoke") {
+  async function act(id: number, action: "grant" | "revoke", planKey?: string) {
     await fetch(`/api/admin/users/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ action, planKey }),
     });
     const d = await fetch("/api/admin/users").then((r) => r.json());
     setUsers(d.users || []);
@@ -953,12 +953,31 @@ function UsersTab() {
               </p>
             </div>
           {u.role !== "admin" && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                defaultValue={PLANS[0].key}
+                className="field !w-auto !py-2 text-sm"
+                onChange={(e) => (u as any)._grantPlan = e.target.value}
+                id={`grant-plan-${u.id}`}
+              >
+                {PLANS.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {p.price} USDT · {p.name}
+                  </option>
+                ))}
+              </select>
               <PrimaryButton
                 className="px-4 py-2 text-sm"
-                onClick={() => act(u.id, "grant")}
+                onClick={() =>
+                  act(
+                    u.id,
+                    "grant",
+                    (document.getElementById(`grant-plan-${u.id}`) as HTMLSelectElement)
+                      ?.value || PLANS[0].key
+                  )
+                }
               >
-                Grant 30d
+                Grant
               </PrimaryButton>
               <GhostButton
                 className="px-4 py-2 text-sm"

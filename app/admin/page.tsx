@@ -902,10 +902,21 @@ function SupportTab() {
 /* ---------------- USERS ---------------- */
 function UsersTab() {
   const [users, setUsers] = useState<UserRow[]>([]);
+  // Per-user selected grant plan, defaulting to what they actually purchased.
+  const [grantPlans, setGrantPlans] = useState<Record<number, string>>({});
   useEffect(() => {
     fetch("/api/admin/users")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => d && setUsers(d.users || []));
+      .then((d) => {
+        if (!d) return;
+        setUsers(d.users || []);
+        // Default each user's grant selector to their purchased/active plan.
+        const init: Record<number, string> = {};
+        for (const u of d.users || []) {
+          init[u.id] = u.sub_plan_key || PLANS[0].key;
+        }
+        setGrantPlans(init);
+      });
   }, []);
 
   async function act(id: number, action: "grant" | "revoke", planKey?: string) {
@@ -916,49 +927,51 @@ function UsersTab() {
     });
     const d = await fetch("/api/admin/users").then((r) => r.json());
     setUsers(d.users || []);
+    const init: Record<number, string> = {};
+    for (const u of d.users || []) {
+      init[u.id] = u.sub_plan_key || PLANS[0].key;
+    }
+    setGrantPlans(init);
   }
 
   return (
     <div className="space-y-3">
-      {users.map((u) => (
+      {users.map((u) => {
+        const purchased = planLabel(u.sub_plan_key, u.sub_status);
+        const sel = grantPlans[u.id] || u.sub_plan_key || PLANS[0].key;
+        return (
         <GlassCard key={u.id} className="flex flex-wrap items-center gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-bold">{u.email}</span>
                 {u.role === "admin" && <Badge tone="red">admin</Badge>}
-                {u.role !== "admin" && (
-                  <Badge
-                    tone={
-                      u.sub_status === "active"
-                        ? "green"
-                        : u.sub_status === "pending"
-                        ? "red"
-                        : "white"
-                    }
-                  >
-                    {planLabel(u.sub_plan_key, u.sub_status)}
-                  </Badge>
-                )}
               </div>
-              <p className="text-sm text-white/50">
+              {u.role !== "admin" && (
+                <p className="mt-1 text-sm">
+                  <span className="text-white/45">Purchased tier: </span>
+                  <span className="font-semibold text-green-glow">{purchased}</span>
+                </p>
+              )}
+              <p className="text-xs text-white/45">
                 {u.sub_status ? (
                   <>
-                    Sub: <span className="text-white/80">{u.sub_status}</span>
+                    Status: <span className="text-white/70">{u.sub_status}</span>
                     {u.sub_expires &&
                       ` · until ${new Date(u.sub_expires).toLocaleDateString()}`}
                   </>
                 ) : (
-                  "No active subscription"
+                  "No subscription yet"
                 )}
               </p>
             </div>
           {u.role !== "admin" && (
             <div className="flex flex-wrap items-center gap-2">
               <select
-                defaultValue={PLANS[0].key}
+                value={sel}
+                onChange={(e) =>
+                  setGrantPlans((g) => ({ ...g, [u.id]: e.target.value }))
+                }
                 className="field !w-auto !py-2 text-sm"
-                onChange={(e) => (u as any)._grantPlan = e.target.value}
-                id={`grant-plan-${u.id}`}
               >
                 {PLANS.map((p) => (
                   <option key={p.key} value={p.key}>
@@ -968,16 +981,9 @@ function UsersTab() {
               </select>
               <PrimaryButton
                 className="px-4 py-2 text-sm"
-                onClick={() =>
-                  act(
-                    u.id,
-                    "grant",
-                    (document.getElementById(`grant-plan-${u.id}`) as HTMLSelectElement)
-                      ?.value || PLANS[0].key
-                  )
-                }
+                onClick={() => act(u.id, "grant", sel)}
               >
-                Grant
+                Grant selected
               </PrimaryButton>
               <GhostButton
                 className="px-4 py-2 text-sm"
@@ -988,7 +994,8 @@ function UsersTab() {
             </div>
           )}
         </GlassCard>
-      ))}
+        );
+      })}
     </div>
   );
 }

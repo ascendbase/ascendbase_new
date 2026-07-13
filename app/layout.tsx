@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ascendbase — Start Patching Looksmaxing Matrix",
+  title: "ascendbase — The Looksmaxing Vault",
   description:
-    "An educational resource with paid crypto access. Sign up, pay with crypto from any wallet, unlock the vault.",
+    "System-level knowledge on male facial attractiveness, craniofacial development, and personal facial evaluation. Join free, unlock the full vault with crypto.",
   icons: {
     icon: [
       { url: "/favicon.ico" },

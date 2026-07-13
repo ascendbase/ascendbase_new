@@ -91,7 +91,7 @@ export default function SiteNav() {
                   Log in
                 </Link>
                 <Link
-                  href="/checkout"
+                  href="/signup"
                   className="btn-red shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold sm:px-5 sm:py-2.5 sm:text-[14px]"
                 >
                   Get access

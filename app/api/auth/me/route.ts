@@ -10,13 +10,19 @@ export async function GET() {
   if (!user) return NextResponse.json({ user: null });
   const sub = await getActiveSubscription(user.id);
   if (sub) {
+    const s = sub as unknown as {
+      status: string;
+      expires_at: string | null;
+      plan: string | null;
+      plan_key: string | null;
+    };
     return NextResponse.json({
       user,
       subscription: {
-        status: sub.status,
-        expiresAt: sub.expires_at,
-        plan: sub.plan,
-        planKey: sub.plan_key,
+        status: s.status,
+        expiresAt: s.expires_at,
+        plan: s.plan,
+        planKey: s.plan_key,
       },
     });
   }

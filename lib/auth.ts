@@ -64,8 +64,17 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
 export async function getActiveSubscription(userId: number) {
   const r = await db.execute({
-    sql: "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active' AND expires_at > datetime('now') AND plan_key != 'free' ORDER BY expires_at DESC LIMIT 1",
+    sql: "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active' AND (plan_key IS NULL OR plan_key != 'free') ORDER BY created_at DESC LIMIT 1",
     args: [userId],
   });
-  return r.rows[0] || null;
+  const row = r.rows[0] as unknown as { expires_at: string | null } | undefined;
+  if (!row) return null;
+  // Expiry check in JS to avoid SQLite/libSQL datetime('now') format
+  // mismatches (ISO vs "YYYY-MM-DD HH:MM:SS") that silently broke
+  // access in production. A NULL expires_at (free tier) is ignored.
+  if (row.expires_at) {
+    const exp = new Date(row.expires_at.replace(" ", "T") + "Z");
+    if (!isNaN(exp.getTime()) && exp.getTime() <= Date.now()) return null;
+  }
+  return row;
 }

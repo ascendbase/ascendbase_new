@@ -17,12 +17,9 @@ export default function SiteNav() {
       .then((d) => {
         setUser(d?.user || null);
         const sub = d?.subscription;
-        // Active PAID user (plan_key is a real plan, not "free") → show "Personal".
-        if (sub && sub.status === "active" && sub.planKey && sub.planKey !== "free") {
-          setPlanKey(sub.planKey);
-        } else {
-          setPlanKey(null);
-        }
+        // me.subscription is only returned for an active, non-free (or
+        // legacy null plan_key) sub, so its presence == paid access.
+        setPlanKey(sub && sub.status === "active" ? (sub.planKey || "paid") : null);
       })
       .catch(() => setUser(null))
       .finally(() => setLoading(false));

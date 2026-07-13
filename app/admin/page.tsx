@@ -59,7 +59,18 @@ type UserRow = {
   role: string;
   sub_status: string | null;
   sub_expires: string | null;
+  sub_plan_key: string | null;
 };
+
+function planLabel(key: string | null, status: string | null): string {
+  if (status === "pending") return "Pending payment";
+  if (status === "active") {
+    if (!key || key === "free") return "Free";
+    const p = PLANS.find((pl) => pl.key === key);
+    return p ? `${p.price} USDT · ${p.name}` : (key || "Paid");
+  }
+  return "No subscription";
+}
 
 function uid() {
   return crypto.randomUUID();
@@ -911,23 +922,36 @@ function UsersTab() {
     <div className="space-y-3">
       {users.map((u) => (
         <GlassCard key={u.id} className="flex flex-wrap items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-bold">{u.email}</span>
-              {u.role === "admin" && <Badge tone="red">admin</Badge>}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-bold">{u.email}</span>
+                {u.role === "admin" && <Badge tone="red">admin</Badge>}
+                {u.role !== "admin" && (
+                  <Badge
+                    tone={
+                      u.sub_status === "active"
+                        ? "green"
+                        : u.sub_status === "pending"
+                        ? "red"
+                        : "white"
+                    }
+                  >
+                    {planLabel(u.sub_plan_key, u.sub_status)}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-white/50">
+                {u.sub_status ? (
+                  <>
+                    Sub: <span className="text-white/80">{u.sub_status}</span>
+                    {u.sub_expires &&
+                      ` · until ${new Date(u.sub_expires).toLocaleDateString()}`}
+                  </>
+                ) : (
+                  "No active subscription"
+                )}
+              </p>
             </div>
-            <p className="text-sm text-white/50">
-              {u.sub_status ? (
-                <>
-                  Sub: <span className="text-white/80">{u.sub_status}</span>
-                  {u.sub_expires &&
-                    ` · until ${new Date(u.sub_expires).toLocaleDateString()}`}
-                </>
-              ) : (
-                "No active subscription"
-              )}
-            </p>
-          </div>
           {u.role !== "admin" && (
             <div className="flex gap-2">
               <PrimaryButton

@@ -141,14 +141,9 @@ export default function CheckoutPage() {
       <SiteNav />
       <Container className="max-w-lg py-16">
           <div className="mb-8 text-center">
-            <Badge tone="green">One-time access</Badge>
           <h1 className="mt-4 text-3xl font-black tracking-tight">
             Unlock the vault
           </h1>
-          <p className="mt-2 text-white/55">
-            Pay once in crypto from any wallet. Access opens for 30 days after
-            the owner verifies your transfer.
-          </p>
         </div>
 
         <GlassCard>
@@ -156,10 +151,6 @@ export default function CheckoutPage() {
             <div className="space-y-5">
                 <div className="text-center">
                   <Badge tone="green">Choose your plan</Badge>
-                <p className="mt-3 text-white/55">
-                  Pay once in crypto from any wallet. Access opens after the
-                  owner verifies your transfer.
-                </p>
               </div>
               <div className="space-y-3">
                 <button

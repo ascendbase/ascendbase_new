@@ -159,7 +159,12 @@ export async function confirmPayment(
   const row = sub.rows[0] as unknown as { plan_key: string | null };
   const plan = getPlan(row?.plan_key || undefined);
   const days = plan ? plan.days : parseInt(process.env.ACCESS_DAYS || "30", 10);
-  const expires = new Date(Date.now() + days * 86400000).toISOString();
+  // SQLite datetime format (YYYY-MM-DD HH:MM:SS) so the
+  // `expires_at > datetime('now')` check in getActiveSubscription works.
+  const expires = new Date(Date.now() + days * 86400000)
+    .toISOString()
+    .replace("T", " ")
+    .slice(0, 19);
   await db.execute({
     sql: "UPDATE subscriptions SET status='active', paid_at=datetime('now'), expires_at=?, tx_hash=?, network=? WHERE order_id=?",
     args: [expires, extra?.txHash || null, extra?.network || null, orderId],

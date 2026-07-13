@@ -23,13 +23,14 @@ type Invoice = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [state, setState] = useState<"loading" | "ready">("loading");
+  const [state, setState] = useState<"loading" | "ready" | "pending">("loading");
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [selPlan, setSelPlan] = useState<string>("free");
   const [selNet, setSelNet] = useState<Network | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [paid, setPaid] = useState(false);
+  const [pendingRef, setPendingRef] = useState<string>("");
 
   useEffect(() => {
     (async () => {
@@ -42,6 +43,13 @@ export default function CheckoutPage() {
       }
       if (me.subscription && me.subscription.status === "active") {
         router.replace("/dashboard");
+        return;
+      }
+      // Awaiting your verification — show the waiting screen, not the
+      // plan picker, so a refresh doesn't look like nothing happened.
+      if (me.subscription && me.subscription.status === "pending") {
+        setPendingRef(me.subscription.orderId || "");
+        setState("pending");
         return;
       }
       setState("ready");
@@ -147,7 +155,38 @@ export default function CheckoutPage() {
         </div>
 
         <GlassCard>
-          {!invoice ? (
+          {state === "pending" ? (
+            <div className="space-y-3 text-center">
+              <div className="text-xl font-bold text-green-glow">
+                Payment awaiting verification ⏳
+              </div>
+              <p className="text-sm text-white/55">
+                We’ve received your payment notice. Access opens as soon as the
+                owner verifies the transfer in their wallet (usually within a few
+                hours). This page refreshes automatically once it’s confirmed.
+              </p>
+              {pendingRef && (
+                <div className="rounded-xl bg-white/5 p-3 text-left">
+                  <div className="text-xs text-white/45">Your reference</div>
+                  <div className="mt-1 break-all font-mono text-sm text-white/80">
+                    {pendingRef}
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center justify-center gap-2 text-sm text-white/50">
+                <span className="spin inline-block h-4 w-4 rounded-full border-2 border-white/20 border-t-green-soft" />
+                Waiting for verification…
+              </div>
+              <div className="flex gap-2">
+                <Link href="/dashboard" className="flex-1">
+                  <PrimaryButton tone="green" className="w-full">Open Vault</PrimaryButton>
+                </Link>
+                <Link href="/support" className="flex-1">
+                  <GhostButton className="w-full">Message support</GhostButton>
+                </Link>
+              </div>
+            </div>
+          ) : !invoice ? (
             <div className="space-y-5">
                 <div className="text-center">
                   <Badge tone="green">Choose your plan</Badge>

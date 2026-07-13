@@ -65,14 +65,14 @@ export default function SiteNav() {
               Benefits
             </Link>
           )}
-          <Link href="/#support" className={`hidden sm:block ${linkCls("/")}`}>
-            Support
-          </Link>
 
           {loading ? null : user ? (
             <>
               <Link href="/dashboard" className={linkCls("/dashboard")}>
                 Vault
+              </Link>
+              <Link href="/subscription" className={linkCls("/subscription")}>
+                Account
               </Link>
               {planKey ? (
                 <Link href="/support" className={linkCls("/support")}>

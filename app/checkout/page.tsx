@@ -44,7 +44,11 @@ export default function CheckoutPage() {
         router.replace("/login");
         return;
       }
-      if (me.subscription && me.subscription.status === "active") {
+      // An UPGRADE user is already active — but they're arriving via
+      // /checkout?upgrade=... to pay the difference, so DON'T bounce
+      // them to the vault. Only redirect active users who aren't upgrading.
+      const upParam = new URLSearchParams(window.location.search).get("upgrade");
+      if (me.subscription && me.subscription.status === "active" && !upParam) {
         router.replace("/dashboard");
         return;
       }

@@ -58,14 +58,16 @@ export default function SiteNav() {
               <Link href="/subscription" className={linkCls("/subscription")}>
                 Account
               </Link>
-              {/* Support is for every tier — general app questions. */}
-              <Link href="/support" className={linkCls("/support")}>
-                Support
-              </Link>
-              {/* The "Personal" line is only for the 49 & 99 tiers. */}
-              {isPersonal && (
+              {/* Free & 19 tiers get the general Support page.
+                  49 & 99 tiers get the Personal line instead
+                  (their Support == Personal, so we don't show both). */}
+              {isPersonal ? (
                 <Link href="/support" className={linkCls("/support")}>
                   Personal
+                </Link>
+              ) : (
+                <Link href="/support" className={linkCls("/support")}>
+                  Support
                 </Link>
               )}
               {user.role === "admin" && (

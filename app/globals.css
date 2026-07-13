@@ -44,7 +44,6 @@ body {
     radial-gradient(900px 560px at 100% 110%, rgba(232, 67, 79, 0.10), transparent 60%),
     radial-gradient(700px 500px at 0% 0%, rgba(255, 255, 255, 0.04), transparent 55%),
     #000;
-  background-attachment: fixed;
 }
 
 a {
@@ -139,6 +138,17 @@ a {
   border-color: rgba(215, 0, 21, 0.75);
   box-shadow: 0 0 0 4px rgba(215, 0, 21, 0.2);
   background: rgba(255, 255, 255, 0.07);
+}
+
+/* Green focus variant — used for the crypto TX-hash field so it reads
+   as "this is where your proof of payment goes", not an error. */
+.field-green {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+.field-green:focus {
+  border-color: rgba(34, 197, 94, 0.85);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
+  background: rgba(34, 197, 94, 0.06);
 }
 
 /* ---- Misc ---- */

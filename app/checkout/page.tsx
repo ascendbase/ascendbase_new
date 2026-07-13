@@ -422,7 +422,7 @@ export default function CheckoutPage() {
                       value={txHash}
                       onChange={(e) => setTxHash(e.target.value)}
                       placeholder="0x… / Tron tx id"
-                      className="mt-1"
+                      className="mt-1 field-green"
                     />
                   </div>
                   {txError && (

@@ -63,7 +63,10 @@ type UserRow = {
 };
 
 function planLabel(key: string | null, status: string | null): string {
-  if (status === "pending") return "Pending payment";
+  if (status === "pending") {
+    const p = key ? PLANS.find((pl) => pl.key === key) : null;
+    return p ? `Pending: ${p.price} USDT · ${p.name}` : "Pending payment";
+  }
   if (status === "active") {
     if (!key || key === "free") return "Free";
     const p = PLANS.find((pl) => pl.key === key);

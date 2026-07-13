@@ -156,7 +156,7 @@ export default function Home() {
         {/* SUPPORT */}
         <section id="support" className="scroll-mt-20 py-16 sm:py-24">
           <Container>
-            <GlassCard className="overflow-hidden text-center">
+            <GlassCard className="relative overflow-hidden text-center">
               <div
                 className="pointer-events-none absolute inset-x-0 -top-24 h-48"
                 style={{

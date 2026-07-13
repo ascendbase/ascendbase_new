@@ -130,28 +130,41 @@ export default function SubscriptionPage() {
         {isPaid && (
           <div className="mt-6">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/40">
-              Compare plans
+              Upgrade your plan
             </h2>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {PLANS.map((p) => (
-                <GlassCard
-                  key={p.key}
-                  className={`p-4 ${
-                    p.key === sub!.planKey ? "ring-1 ring-green/50" : ""
-                  }`}
-                >
-                  <div className="font-bold">{p.name}</div>
-                  <div className="mt-1 text-xl font-black text-green-glow">
-                    {p.price} USDT
-                  </div>
-                  <p className="mt-2 text-xs text-white/50">{p.description}</p>
-                  {p.key !== sub!.planKey && (
-                    <Link href="/checkout" className="mt-3 block">
-                      <GhostButton className="w-full text-sm">Switch</GhostButton>
+            <p className="mb-3 text-xs text-white/45">
+              You can only move to a higher tier. You’ll pay just the
+              remaining difference for the rest of your current period.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {PLANS.filter((p) => p.price > (plan?.price ?? 0)).map((p) => {
+                const diff = Math.max(
+                  0,
+                  Math.round((p.price - (plan?.price ?? 0)) * 100) / 100
+                );
+                return (
+                  <GlassCard key={p.key} className="p-4">
+                    <div className="font-bold">{p.name}</div>
+                    <div className="mt-1 text-xl font-black text-green-glow">
+                      +{diff} USDT
+                    </div>
+                    <p className="mt-2 text-xs text-white/50">{p.description}</p>
+                    <Link
+                      href={`/checkout?upgrade=${sub!.planKey}`}
+                      className="mt-3 block"
+                    >
+                      <GhostButton className="w-full text-sm">
+                        Upgrade to {p.name}
+                      </GhostButton>
                     </Link>
-                  )}
-                </GlassCard>
-              ))}
+                  </GlassCard>
+                );
+              })}
+              {PLANS.filter((p) => p.price > (plan?.price ?? 0)).length === 0 && (
+                <p className="text-sm text-white/45">
+                  You’re already on the highest tier. 🎉
+                </p>
+              )}
             </div>
           </div>
         )}

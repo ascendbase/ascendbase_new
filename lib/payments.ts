@@ -91,6 +91,7 @@ export async function createInvoice(opts: {
   planKey?: string;
   coin?: string;
   net?: string;
+  upgradeFrom?: string;
 }): Promise<Invoice> {
   const orderId =
     "ab_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
@@ -165,6 +166,19 @@ export async function confirmPayment(
     .toISOString()
     .replace("T", " ")
     .slice(0, 19);
+  // On an upgrade, cancel the user's previous active sub so only the
+  // new (higher) tier stays active.
+  const target = await db.execute({
+    sql: "SELECT user_id FROM subscriptions WHERE order_id = ?",
+    args: [orderId],
+  });
+  const trow = target.rows[0] as unknown as { user_id: number } | undefined;
+  if (trow) {
+    await db.execute({
+      sql: "UPDATE subscriptions SET status='cancelled' WHERE user_id = ? AND status = 'active' AND order_id != ?",
+      args: [trow.user_id, orderId],
+    });
+  }
   await db.execute({
     sql: "UPDATE subscriptions SET status='active', paid_at=datetime('now'), expires_at=?, tx_hash=?, network=? WHERE order_id=?",
     args: [expires, extra?.txHash || null, extra?.network || null, orderId],

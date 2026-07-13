@@ -31,6 +31,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [paid, setPaid] = useState(false);
   const [pendingRef, setPendingRef] = useState<string>("");
+  // Upgrade mode: ?upgrade=<currentPlanKey> preselects the next tier
+  // and only lets the user pay the difference (no downgrades).
+  const [upgradeFrom, setUpgradeFrom] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -52,6 +55,16 @@ export default function CheckoutPage() {
         setState("pending");
         return;
       }
+      // Upgrade flow: preselect the lowest tier above the current one.
+      const up = new URLSearchParams(window.location.search).get("upgrade");
+      if (up) {
+        const cur = getPlan(up);
+        const higher = PLANS.filter((p) => (cur ? p.price > cur.price : true));
+        if (higher.length) {
+          setUpgradeFrom(up);
+          setSelPlan(higher.sort((a, b) => a.price - b.price)[0].key);
+        }
+      }
       setState("ready");
     })();
   }, [router]);
@@ -62,7 +75,10 @@ export default function CheckoutPage() {
     const r = await fetch("/api/checkout/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planKey: selPlan }),
+      body: JSON.stringify({
+        planKey: selPlan,
+        upgradeFrom: upgradeFrom || undefined,
+      }),
     });
     const data = await r.json();
     setBusy(false);
@@ -192,25 +208,33 @@ export default function CheckoutPage() {
                   <Badge tone="green">Choose your plan</Badge>
               </div>
               <div className="space-y-3">
-                <button
-                  key={FREE_PLAN.key}
-                  onClick={() => setSelPlan(FREE_PLAN.key)}
-                  className={`w-full rounded-2xl border p-4 text-left transition ${
-                    selPlan === FREE_PLAN.key
-                      ? "border-green/60 bg-green/10"
-                      : "border-white/10 hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold">{FREE_PLAN.name}</span>
-                    <span className="text-xl font-black text-green-glow">Free</span>
-                  </div>
-                  <p className="mt-1 text-sm text-white/50">
-                    Some vault content is open to everyone. Start here, upgrade
-                    anytime with crypto.
-                  </p>
-                </button>
-                {PLANS.map((p) => (
+                {!upgradeFrom && (
+                  <button
+                    key={FREE_PLAN.key}
+                    onClick={() => setSelPlan(FREE_PLAN.key)}
+                    className={`w-full rounded-2xl border p-4 text-left transition ${
+                      selPlan === FREE_PLAN.key
+                        ? "border-green/60 bg-green/10"
+                        : "border-white/10 hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">{FREE_PLAN.name}</span>
+                      <span className="text-xl font-black text-green-glow">Free</span>
+                    </div>
+                    <p className="mt-1 text-sm text-white/50">
+                      Some vault content is open to everyone. Start here, upgrade
+                      anytime with crypto.
+                    </p>
+                  </button>
+                )}
+                {PLANS
+                  .filter((p) =>
+                    upgradeFrom
+                      ? p.price > (getPlan(upgradeFrom)?.price ?? 0)
+                      : true
+                  )
+                  .map((p) => (
                   <button
                     key={p.key}
                     onClick={() => setSelPlan(p.key)}
@@ -223,7 +247,14 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between">
                       <span className="font-bold">{p.name}</span>
                       <span className="text-xl font-black text-green-glow">
-                        {p.price} USDT
+                        {upgradeFrom
+                          ? `+${Math.max(
+                              0,
+                              Math.round(
+                                (p.price - (getPlan(upgradeFrom)?.price ?? 0)) * 100
+                              ) / 100
+                            )} USDT`
+                          : `${p.price} USDT`}
                       </span>
                     </div>
                     <p className="mt-1 text-sm text-white/50">{p.description}</p>

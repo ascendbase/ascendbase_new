@@ -58,7 +58,7 @@ export default function Home() {
           />
           <Container className="relative py-20 sm:py-28 text-center">
             <div className="fade-up">
-              <Badge tone="green">Unlock the looksmaxing matrix</Badge>
+              <Badge tone="white">Unlock the looksmaxing matrix</Badge>
               <h1 className="mt-6 text-5xl sm:text-7xl font-black tracking-tight leading-[1.04]">
                 ascend<span className="text-red-glow">base</span>
               </h1>

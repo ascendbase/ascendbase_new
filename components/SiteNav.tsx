@@ -25,6 +25,9 @@ export default function SiteNav() {
       .finally(() => setLoading(false));
   }, []);
 
+  // "Personal" line is only for the 49 (advice) and 99 (coaching) tiers.
+  const isPersonal = planKey === "advice" || planKey === "coaching";
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
@@ -47,22 +50,6 @@ export default function SiteNav() {
         </Link>
 
         <div className="flex items-center gap-3 sm:gap-5">
-          {user ? (
-            planKey ? (
-              <Link href="/support" className={`hidden sm:block ${linkCls("/support")}`}>
-                Personal
-              </Link>
-            ) : (
-              <Link href="/checkout" className={`hidden sm:block ${linkCls("/checkout")}`}>
-                Full access
-              </Link>
-            )
-          ) : (
-            <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")}`}>
-              Benefits
-            </Link>
-          )}
-
           {loading ? null : user ? (
             <>
               <Link href="/dashboard" className={linkCls("/dashboard")}>
@@ -71,13 +58,14 @@ export default function SiteNav() {
               <Link href="/subscription" className={linkCls("/subscription")}>
                 Account
               </Link>
-              {planKey ? (
+              {/* Support is for every tier — general app questions. */}
+              <Link href="/support" className={linkCls("/support")}>
+                Support
+              </Link>
+              {/* The "Personal" line is only for the 49 & 99 tiers. */}
+              {isPersonal && (
                 <Link href="/support" className={linkCls("/support")}>
                   Personal
-                </Link>
-              ) : (
-                <Link href="/support" className={linkCls("/support")}>
-                  Support
                 </Link>
               )}
               {user.role === "admin" && (
@@ -94,6 +82,9 @@ export default function SiteNav() {
             </>
           ) : (
             <>
+              <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")}`}>
+                Benefits
+              </Link>
               <Link href="/login" className={`hidden sm:block ${linkCls("/login")}`}>
                 Log in
               </Link>

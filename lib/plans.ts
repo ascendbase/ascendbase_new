@@ -58,6 +58,11 @@ export const PLANS: Plan[] = [
     description:
       "A full month of hands-on coaching with actual, practical looksmaxing steps tailored to you — not just theory.",
     features: [
+      // Everything in the 19 & 49 tiers, plus:
+      "Full access to all vault content (free + members-only posts)",
+      "Full list of your individual facial flaws",
+      "Full package of your facial ratios and your harmony score",
+      "Full explanation of your facial status, with Q&A until you 100% understand",
       "Personal monthly coaching program",
       "Real, practical looksmaxing steps to follow",
       "Direct contact and ongoing guidance",

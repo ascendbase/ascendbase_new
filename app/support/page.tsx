@@ -110,11 +110,11 @@ export default function SupportPage() {
       <SiteNav />
       <Container className="py-12">
         <h1 className="text-3xl font-black tracking-tight">
-          {planName ? "Your Personal Line" : "Support"}
+          {planName ? "Your Personal Assistance" : "Support"}
         </h1>
         <p className="mt-1 text-white/55">
           {planName
-            ? `This is your ${planName} channel — message me directly and I'll get back to you.`
+            ? `This is your ${planName} channel — send me the pics of your face now to get started.`
             : "Message me directly — I read every thread."}
         </p>
         {planName && (

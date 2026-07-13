@@ -64,6 +64,14 @@ export default function SubscriptionPage() {
                 <Badge tone="green">active</Badge>
               </div>
               <p className="text-sm text-white/55">{plan!.description}</p>
+              <ul className="space-y-1.5">
+                {plan!.features.map((f, i) => (
+                  <li key={i} className="flex gap-2 text-sm text-white/70">
+                    <span className="text-green-glow">✓</span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
               {sub!.expiresAt && (
                 <p className="text-sm text-white/50">
                   Access until{" "}
@@ -127,7 +135,7 @@ export default function SubscriptionPage() {
           )}
         </GlassCard>
 
-        {isPaid && (
+        {isPaid && PLANS.some((p) => p.price > (plan?.price ?? 0)) && (
           <div className="mt-6">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/40">
               Upgrade your plan
@@ -160,11 +168,6 @@ export default function SubscriptionPage() {
                   </GlassCard>
                 );
               })}
-              {PLANS.filter((p) => p.price > (plan?.price ?? 0)).length === 0 && (
-                <p className="text-sm text-white/45">
-                  You’re already on the highest tier. 🎉
-                </p>
-              )}
             </div>
           </div>
         )}

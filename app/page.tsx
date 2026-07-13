@@ -48,15 +48,6 @@ export default function Home() {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden">
-          <div
-            className="pointer-events-none absolute left-1/2 top-[-18%] h-[720px] w-[720px] -translate-x-1/2 rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(0, 182, 3, 0.22), transparent 72%)",
-              filter: "blur(40px)",
-              willChange: "transform",
-            }}
-          />
           <Container className="relative py-20 sm:py-28 text-center">
             <div className="fade-up">
               <Badge tone="green">Unlock the looksmaxing matrix</Badge>

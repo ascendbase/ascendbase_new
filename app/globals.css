@@ -1,26 +1,236 @@
 @import "tailwindcss";
 
+@theme {
+  --color-ink: #f5f5f7;
+  --color-bg: #000000;
+  /* Deep red palette (replaces the old coral/orange-leaning red) */
+  --color-red: #d70015;
+  --color-red-soft: #e8434f;
+  --color-red-deep: #a30010;
+  /* Green palette (used on the checkout / payment flow for a "safe" feel) */
+  --color-green: #16a34a;
+  --color-green-soft: #22c55e;
+  --color-green-deep: #15803d;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: #000;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 620px at 50% -12%, rgba(215, 0, 21, 0.16), transparent 60%),
+    radial-gradient(900px 560px at 100% 110%, rgba(232, 67, 79, 0.10), transparent 60%),
+    radial-gradient(700px 500px at 0% 0%, rgba(255, 255, 255, 0.04), transparent 55%),
+    #000;
+  background-attachment: fixed;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---- iOS 27 glass surface ---- */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.glass-strong {
+  background: rgba(20, 20, 22, 0.6);
+  backdrop-filter: blur(30px) saturate(160%);
+  -webkit-backdrop-filter: blur(30px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Deep red gradient action button (brand) ---- */
+.btn-red {
+  background: linear-gradient(180deg, #e8434f 0%, #d70015 55%, #a30010 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 10px 34px rgba(215, 0, 21, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.btn-red:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 40px rgba(215, 0, 21, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.btn-red:active {
+  transform: scale(0.98);
+}
+
+/* ---- Emerald gradient action button (checkout / payment flow) ---- */
+/* Mirrors .btn-red's shape & feel but in the safe "verified" green. */
+.btn-green {
+  background: linear-gradient(180deg, #34d399 0%, #16a34a 55%, #15803d 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 10px 34px rgba(22, 163, 74, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.btn-green:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 40px rgba(22, 163, 74, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.btn-green:active {
+  transform: scale(0.98);
+}
+
+/* ---- Ghost / secondary button ---- */
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.btn-ghost:active {
+  transform: scale(0.98);
+}
+
+/* ---- Inputs ---- */
+.field {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  color: #fff;
+  padding: 0.85rem 1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+.field::placeholder {
+  color: rgba(245, 245, 247, 0.4);
+}
+.field:focus {
+  border-color: rgba(215, 0, 21, 0.75);
+  box-shadow: 0 0 0 4px rgba(215, 0, 21, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ---- Misc ---- */
+.text-red-glow {
+  color: #e8434f;
+  text-shadow: 0 0 24px rgba(215, 0, 21, 0.5);
+}
+.text-green-glow {
+  color: #22c55e;
+  text-shadow: 0 0 24px rgba(22, 163, 74, 0.5);
+}
+
+/* ---- Vault post Markdown body ---- */
+.md-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(245, 245, 247, 0.85);
+  word-break: break-word;
+}
+.md-body .md-p {
+  margin: 0 0 0.9rem;
+}
+.md-body .md-h {
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
+  margin: 1.4rem 0 0.6rem;
+  letter-spacing: -0.01em;
+}
+.md-body .md-h1 { font-size: 1.6rem; }
+.md-body .md-h2 { font-size: 1.35rem; }
+.md-body .md-h3 { font-size: 1.15rem; }
+.md-body .md-h4,
+.md-body .md-h5,
+.md-body .md-h6 { font-size: 1rem; }
+.md-body .md-ul,
+.md-body .md-ol {
+  margin: 0 0 0.9rem;
+  padding-left: 1.4rem;
+}
+.md-body .md-ul { list-style: disc; }
+.md-body .md-ol { list-style: decimal; }
+.md-body .md-ul li,
+.md-body .md-ol li { margin: 0.25rem 0; }
+.md-body .md-quote {
+  margin: 0 0 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-left: 3px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: rgba(245, 245, 247, 0.7);
+}
+.md-body .md-link {
+  color: #4ade80;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-body .md-link:hover { color: #22c55e; }
+.md-body .md-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.4rem;
+  padding: 0.1rem 0.35rem;
+}
+.md-body .md-hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 1.2rem 0;
+}
+.hairline {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.fade-up {
+  animation: fadeUp 0.5s ease both;
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

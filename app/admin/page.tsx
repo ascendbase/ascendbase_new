@@ -812,25 +812,53 @@ function SupportTab() {
   return (
     <div className="grid gap-4 md:grid-cols-[300px_1fr]">
       <div className="space-y-2">
-        {threads.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => open(t.id)}
-            className={`w-full rounded-2xl p-3 text-left glass ${
-              active === t.id ? "ring-1 ring-red/50" : ""
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="truncate font-semibold">{t.user_email}</span>
-              <Badge tone={t.status === "open" ? "red" : "green"}>
-                {t.status}
-              </Badge>
-            </div>
-            <p className="truncate text-xs text-white/45">
-              {t.last_msg || t.subject || "No messages"}
-            </p>
-          </button>
-        ))}
+            {threads.map((t) => (
+              <div
+                key={t.id}
+                className={`flex items-center gap-2 rounded-2xl p-3 glass ${
+                  active === t.id ? "ring-1 ring-red/50" : ""
+                }`}
+              >
+                <button
+                  onClick={() => open(t.id)}
+                  className="min-w-0 flex-1 text-left"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-semibold">{t.user_email}</span>
+                    <Badge tone={t.status === "open" ? "red" : "green"}>
+                      {t.status}
+                    </Badge>
+                  </div>
+                  <p className="truncate text-xs text-white/45">
+                    {t.last_msg || t.subject || "No messages"}
+                  </p>
+                </button>
+                <button
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        "Delete this entire conversation (all messages + images) permanently?"
+                      )
+                    )
+                      return;
+                    const r = await fetch(`/api/support/${t.id}`, {
+                      method: "DELETE",
+                    });
+                    if (r.ok) {
+                      if (active === t.id) {
+                        setActive(null);
+                        setMessages([]);
+                      }
+                      await load();
+                    }
+                  }}
+                  title="Delete this conversation permanently"
+                  className="shrink-0 rounded-md px-2 py-1 text-xs text-red-glow hover:bg-white/10"
+                >
+                  🗑
+                </button>
+              </div>
+            ))}
         {threads.length === 0 && (
           <p className="px-1 text-sm text-white/40">No support threads.</p>
         )}

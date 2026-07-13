@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 
 /**
  * Image storage for vault content.
@@ -43,4 +43,27 @@ export async function saveImage(file: File): Promise<SavedImage> {
   await fs.mkdir(UPLOAD_DIR, { recursive: true });
   await fs.writeFile(path.join(UPLOAD_DIR, key), buf);
   return { url: `/uploads/${key}`, key };
+}
+
+/**
+ * Permanently delete an image by its URL. Handles both local
+ * (public/uploads/...) and Vercel Blob (https://...vercel-storage.com/...)
+ * storage. Safe to call with any URL — unknown formats are ignored.
+ */
+export async function deleteImage(url: string | null | undefined): Promise<void> {
+  if (!url) return;
+  try {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      }
+      return; // remote URL we can't delete without a token — skip silently
+    }
+    if (url.startsWith("/uploads/")) {
+      const fp = path.join(process.cwd(), "public", url);
+      await fs.rm(fp, { force: true });
+    }
+  } catch {
+    /* best-effort: ignore missing files / token errors */
+  }
 }

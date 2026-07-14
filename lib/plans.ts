@@ -36,9 +36,8 @@ export const PLANS: Plan[] = [
       "30 days of access, re-pay to extend",
     ],
     cta: "Unlock full vault access",
-    // Paused for now — only free info is published. Re-enable when
-    // paid vault content is ready. See checkout filter on `disabled`.
-    disabled: true,
+    // Re-enabled: 19 USDT "Full Vault Access" tier is live again.
+    disabled: false,
   },
   {
     key: "advice",

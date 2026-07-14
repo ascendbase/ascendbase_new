@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard, PrimaryButton, GhostButton, Badge, Input } from "@/components/ui";
-import { PLANS, FREE_PLAN, getPlan, type Plan } from "@/lib/plans";
+import { PLANS, FREE_PLAN, getPlan, activePlans, type Plan } from "@/lib/plans";
 
 type Network = { coin: string; net: string; address: string; memoSupported: boolean };
 type Invoice = {
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
                     </p>
                   </button>
                 )}
-                {PLANS
+                {activePlans()
                   .filter((p) =>
                     upgradeFrom
                       ? p.price > (getPlan(upgradeFrom)?.price ?? 0)

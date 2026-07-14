@@ -7,6 +7,8 @@ export type Plan = {
   description: string;
   features: string[];
   cta: string;
+  /** When true the plan is hidden from checkout (e.g. paused by owner). */
+  disabled?: boolean;
 };
 
 /** The implicit free tier (sign-up). Not a paid plan. */
@@ -34,6 +36,9 @@ export const PLANS: Plan[] = [
       "30 days of access, re-pay to extend",
     ],
     cta: "Unlock full vault access",
+    // Paused for now — only free info is published. Re-enable when
+    // paid vault content is ready. See checkout filter on `disabled`.
+    disabled: true,
   },
   {
     key: "advice",
@@ -74,4 +79,9 @@ export const PLANS: Plan[] = [
 
 export function getPlan(key?: string): Plan | undefined {
   return PLANS.find((p) => p.key === key);
+}
+
+/** Plans actually offered at checkout (excludes paused/disabled ones). */
+export function activePlans(): Plan[] {
+  return PLANS.filter((p) => !p.disabled);
 }

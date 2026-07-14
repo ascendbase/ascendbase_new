@@ -142,12 +142,13 @@ export default function CheckoutPage() {
     else setError("Simulation failed.");
   }
 
-  // Poll for the owner's verification. Runs whenever the waiting screen
-  // is shown (both right after "I've sent the payment" AND if the user
-  // refreshes the page while still pending). Once the subscription flips
+  // Poll for the owner's verification. Runs in both waiting cases:
+  // (a) right after "I've sent the payment" (paid === true, state
+  // still "ready"), and (b) if the user refreshes the page while
+  // still pending (state === "pending"). Once the subscription flips
   // to "active", open the vault automatically.
   useEffect(() => {
-    if (state !== "pending") return;
+    if (state !== "pending" && !paid) return;
     let alive = true;
     const t = setInterval(async () => {
       const me = await fetch("/api/auth/me").then((r) =>

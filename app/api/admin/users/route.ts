@@ -14,7 +14,9 @@ export async function GET() {
             (SELECT status FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_status,
             (SELECT expires_at FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_expires,
             (SELECT plan_key FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_plan_key,
-            (SELECT amount FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_amount
+            (SELECT amount FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_amount,
+            (SELECT tx_hash FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_tx_hash,
+            (SELECT network FROM subscriptions s WHERE s.user_id=u.id ORDER BY s.created_at DESC LIMIT 1) as sub_network
      FROM users u ORDER BY u.created_at DESC`
   );
   return NextResponse.json({ users: users.rows });

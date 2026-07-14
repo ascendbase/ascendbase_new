@@ -21,13 +21,15 @@ You will be given a topic and an access tier. Return ONLY valid JSON (no markdow
 {
   "title": string,
   "blocks": [
-    { "type": "text", "text": "string (a heading or paragraph; use \\n\\n for paragraph breaks)" }
+    { "type": "text", "text": "string" }
   ]
 }
 
-Rules:
-- 6-12 text blocks. Start with a short intro block, then use clear section headings as their own blocks (e.g. "## Bone structure vs soft tissue").
-- Each block is ONE coherent unit (a heading, or a paragraph of 2-5 sentences). Do not cram the whole article into one block.
+Rules — ALWAYS follow:
+- 6-12 text blocks. The FIRST block is a short intro/title paragraph. Then use clear section headings as their OWN blocks (e.g. "## Bone structure vs soft tissue").
+- ALWAYS use Markdown inside each block: **bold** for key terms, bullet lists with "- " for points, and "## " for section headings. Use bullet points liberally — they are the default way to present lists and steps.
+- Each block is ONE coherent unit (a heading, or a paragraph of 2-5 sentences, or a bullet list). Do not cram everything into one block.
+- Follow the INSTRUCTION precisely: if it says summarize, condense; if reformat, restructure; if extract, pull the specific parts requested.
 - Keep it factual and specific. No disclaimers, no "in conclusion" filler.
 - For "paid" tier, go deeper (mechanics, ratios, actionable steps). For "free"/"preview", keep it introductory.`;
 
@@ -37,16 +39,20 @@ export async function POST(req: NextRequest) {
   if (!user || user.role !== "admin")
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
-  const { topic, access, parentId, model } = (await req.json().catch(
-    () => ({})
-  )) as {
-    topic?: string;
+  const { instruction, sourceText, access, parentId, model } = (await req
+    .json()
+    .catch(() => ({}))) as {
+    instruction?: string;
+    sourceText?: string;
     access?: string;
     parentId?: number | null;
     model?: string;
   };
-  if (!topic || !topic.trim())
-    return NextResponse.json({ error: "Topic is required." }, { status: 400 });
+  if (!sourceText || !sourceText.trim())
+    return NextResponse.json(
+      { error: "Source text is required." },
+      { status: 400 }
+    );
 
   const key = process.env.OPENROUTER_API_KEY;
   if (!key)
@@ -62,7 +68,7 @@ export async function POST(req: NextRequest) {
     model || process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
 
   let blocks: { type: "text"; text: string; preview: boolean }[] = [];
-  let title = topic.trim().slice(0, 80);
+  let title = (instruction || sourceText).trim().slice(0, 80);
 
   try {
     const r = await fetch(
@@ -83,7 +89,11 @@ export async function POST(req: NextRequest) {
             { role: "system", content: SYSTEM },
             {
               role: "user",
-              content: `Topic: ${topic.trim()}\nAccess tier: ${accessLevel}\nWrite the post.`,
+              content: `ACCESS TIER: ${accessLevel}\n\nINSTRUCTION (what to do with the text):\n${
+                instruction && instruction.trim()
+                  ? instruction.trim()
+                  : "Transform this into a well-structured vault lesson post."
+              }\n\nSOURCE TEXT:\n${sourceText.trim()}`,
             },
           ],
         }),

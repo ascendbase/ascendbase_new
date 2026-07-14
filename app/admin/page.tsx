@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -168,15 +169,16 @@ function ContentTab() {
 
   // AI generation panel state.
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiTopic, setAiTopic] = useState("");
+  const [aiInstruction, setAiInstruction] = useState("");
+  const [aiSource, setAiSource] = useState("");
   const [aiAccess, setAiAccess] = useState<"free" | "preview" | "paid">("free");
   const [aiParent, setAiParent] = useState<string>("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMsg, setAiMsg] = useState("");
 
   async function generateAi() {
-    if (!aiTopic.trim()) {
-      setAiMsg("Enter a topic.");
+    if (!aiSource.trim()) {
+      setAiMsg("Paste the source text to transform.");
       return;
     }
     setAiBusy(true);
@@ -185,7 +187,8 @@ function ContentTab() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        topic: aiTopic,
+        instruction: aiInstruction,
+        sourceText: aiSource,
         access: aiAccess,
         parentId: aiParent ? Number(aiParent) : null,
       }),
@@ -194,7 +197,8 @@ function ContentTab() {
     if (r.ok) {
       setAiMsg("Draft created — open it below to reorder / add images, then publish.");
       setAiOpen(false);
-      setAiTopic("");
+      setAiInstruction("");
+      setAiSource("");
       await load();
     } else {
       const d = await r.json().catch(() => ({}));
@@ -202,15 +206,15 @@ function ContentTab() {
     }
   }
 
-  async function load() {
-    const c = await fetch("/api/content").then((r) =>
-      r.ok ? r.json() : null
-    );
-    if (c) setItems(c.items || []);
+  function parseBlocks(raw: any): any[] {
+    const str = typeof raw === "string" ? raw : JSON.stringify(raw || []);
+    try {
+      const arr = JSON.parse(str || "[]");
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
   }
-  useEffect(() => {
-    load();
-  }, []);
 
   function resetForm() {
     setEditing(null);
@@ -224,15 +228,15 @@ function ContentTab() {
     setMsg("");
   }
 
-  function parseBlocks(raw: any): any[] {
-    const str = typeof raw === "string" ? raw : JSON.stringify(raw || []);
-    try {
-      const arr = JSON.parse(str || "[]");
-      return Array.isArray(arr) ? arr : [];
-    } catch {
-      return [];
-    }
+  async function load() {
+    const c = await fetch("/api/content").then((r) =>
+      r.ok ? r.json() : null
+    );
+    if (c) setItems(c.items || []);
   }
+  useEffect(() => {
+    load();
+  }, []);
 
   async function edit(it: ContentItem) {
     setEditing(it);
@@ -429,11 +433,20 @@ function ContentTab() {
           {aiOpen && (
             <div className="mt-3 space-y-3">
               <div>
-                <Label>Topic</Label>
+                <Label>What to do with the text</Label>
                 <Input
-                  value={aiTopic}
-                  onChange={(e) => setAiTopic(e.target.value)}
-                  placeholder="e.g. How forward growth affects facial harmony"
+                  value={aiInstruction}
+                  onChange={(e) => setAiInstruction(e.target.value)}
+                  placeholder="e.g. Summarize key points · Reformat into a lesson · Extract the bone-mechanics"
+                />
+              </div>
+              <div>
+                <Label>Source text (will be transformed into the post)</Label>
+                <TextArea
+                  value={aiSource}
+                  onChange={(e) => setAiSource(e.target.value)}
+                  placeholder="Paste the raw text here…"
+                  className="min-h-[120px]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -476,9 +489,9 @@ function ContentTab() {
                 {aiBusy ? "Generating…" : "Generate draft"}
               </PrimaryButton>
               <p className="text-xs text-white/45">
-                Creates a <b className="text-white/70">draft</b> post (text blocks
-                only). You then open it to reorder, toggle previews and add
-                images before publishing.
+                Creates a <b className="text-white/70">draft</b> post (Markdown
+                text blocks with bullet points). You then open it to reorder,
+                toggle previews and add images before publishing.
               </p>
             </div>
           )}

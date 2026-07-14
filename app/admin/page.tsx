@@ -1082,15 +1082,13 @@ function UsersTab() {
                     </span>
                     <a
                       href={
-                        /tron/i.test(u.sub_network || "")
-                          ? `https://tronscan.org/#/transaction/${u.sub_tx_hash}`
-                          : /btc/i.test(u.sub_network || "")
+                        /btc/i.test(u.sub_network || "")
                           ? `https://www.blockchain.com/btc/tx/${u.sub_tx_hash}`
                           : /eth|erc/i.test(u.sub_network || "")
                           ? `https://etherscan.io/tx/${u.sub_tx_hash}`
                           : /sol/i.test(u.sub_network || "")
                           ? `https://solscan.io/tx/${u.sub_tx_hash}`
-                          : "#"
+                          : `https://tronscan.org/#/transaction/${u.sub_tx_hash}`
                       }
                       target="_blank"
                       rel="noreferrer"

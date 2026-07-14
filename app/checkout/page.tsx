@@ -157,7 +157,14 @@ export default function CheckoutPage() {
       );
       if (me?.subscription?.status === "active") {
         clearInterval(t);
-        if (alive) router.replace("/dashboard");
+        if (!alive) return;
+        // Paid tiers (price > 0) land on the Account page so the
+        // member can manage their subscription. The free tier and the
+        // 19 USDT "Full Vault Access" tier go straight to the vault.
+        const pk = me.subscription.planKey;
+        const plan = getPlan(pk);
+        const goAccount = plan && plan.price > 0 && pk !== "vault";
+        router.replace(goAccount ? "/subscription" : "/dashboard");
       }
     }, 4000);
     return () => {

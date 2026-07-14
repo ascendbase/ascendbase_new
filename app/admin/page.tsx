@@ -166,6 +166,42 @@ function ContentTab() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // AI generation panel state.
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiAccess, setAiAccess] = useState<"free" | "preview" | "paid">("free");
+  const [aiParent, setAiParent] = useState<string>("");
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiMsg, setAiMsg] = useState("");
+
+  async function generateAi() {
+    if (!aiTopic.trim()) {
+      setAiMsg("Enter a topic.");
+      return;
+    }
+    setAiBusy(true);
+    setAiMsg("");
+    const r = await fetch("/api/admin/content/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topic: aiTopic,
+        access: aiAccess,
+        parentId: aiParent ? Number(aiParent) : null,
+      }),
+    });
+    setAiBusy(false);
+    if (r.ok) {
+      setAiMsg("Draft created — open it below to reorder / add images, then publish.");
+      setAiOpen(false);
+      setAiTopic("");
+      await load();
+    } else {
+      const d = await r.json().catch(() => ({}));
+      setAiMsg(d.error || "Generation failed.");
+    }
+  }
+
   async function load() {
     const c = await fetch("/api/content").then((r) =>
       r.ok ? r.json() : null
@@ -378,6 +414,76 @@ function ContentTab() {
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_390px]">
       <div className="space-y-3">
+        <GlassCard className="border-green/30">
+          <button
+            onClick={() => setAiOpen((o) => !o)}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <span className="font-bold text-green-glow">
+              ✨ Generate with AI
+            </span>
+            <span className="text-sm text-white/50">
+              {aiOpen ? "▲" : "▼"}
+            </span>
+          </button>
+          {aiOpen && (
+            <div className="mt-3 space-y-3">
+              <div>
+                <Label>Topic</Label>
+                <Input
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  placeholder="e.g. How forward growth affects facial harmony"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Access tier</Label>
+                  <select
+                    value={aiAccess}
+                    onChange={(e) =>
+                      setAiAccess(e.target.value as "free" | "preview" | "paid")
+                    }
+                    className="field"
+                  >
+                    <option value="free">Free</option>
+                    <option value="preview">Preview</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>Nest under folder</Label>
+                  <select
+                    value={aiParent}
+                    onChange={(e) => setAiParent(e.target.value)}
+                    className="field"
+                  >
+                    <option value="">— Top level —</option>
+                    {folders.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <PrimaryButton
+                tone="green"
+                className="w-full"
+                onClick={generateAi}
+                disabled={aiBusy}
+              >
+                {aiBusy ? "Generating…" : "Generate draft"}
+              </PrimaryButton>
+              <p className="text-xs text-white/45">
+                Creates a <b className="text-white/70">draft</b> post (text blocks
+                only). You then open it to reorder, toggle previews and add
+                images before publishing.
+              </p>
+            </div>
+          )}
+          {aiMsg && <p className="mt-2 text-sm text-green-glow">{aiMsg}</p>}
+        </GlassCard>
         {rows.map((it) => {
           const depth = (it as any)._depth || 0;
           const isFolder = (it.kind || "post") === "folder";

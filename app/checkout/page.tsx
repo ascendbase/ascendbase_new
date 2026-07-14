@@ -146,7 +146,8 @@ export default function CheckoutPage() {
   // (a) right after "I've sent the payment" (paid === true, state
   // still "ready"), and (b) if the user refreshes the page while
   // still pending (state === "pending"). Once the subscription flips
-  // to "active", open the vault automatically.
+  // to "active", open the vault automatically. `paid` MUST be in the
+  // dep array — otherwise flipping it to true never re-runs the effect.
   useEffect(() => {
     if (state !== "pending" && !paid) return;
     let alive = true;
@@ -163,7 +164,7 @@ export default function CheckoutPage() {
       alive = false;
       clearInterval(t);
     };
-  }, [state, router]);
+  }, [state, paid, router]);
 
   function copy(text: string) {
     navigator.clipboard?.writeText(text);

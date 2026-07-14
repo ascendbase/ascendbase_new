@@ -409,9 +409,15 @@ export default function CheckoutPage() {
                     </ol>
                     <p className="mt-3 text-xs text-white/45">
                       Confused where the TX hash is? After sending, most wallets
-                      show it under “Transaction details” / “View on explorer”.
-                      If you can’t find it, just message us from the Support
-                      page and we’ll help.
+                      show it under "Transaction details" / "View on explorer".
+                      If you can't find it, just message us from the Support
+                      page and we'll help.
+                    </p>
+                    <p className="mt-3 rounded-xl border border-red/30 bg-red/10 p-3 text-xs text-red-glow">
+                      ⚠ Send your {invoice.coin} <b className="text-white">only on the {invoice.net} network</b>.
+                      Sending on a different chain (e.g. ERC20 instead of
+                      TRC20) will not reach this address and can't be verified —
+                      your funds may be lost.
                     </p>
                   </div>
                   <div>

@@ -61,6 +61,8 @@ type UserRow = {
   sub_expires: string | null;
   sub_plan_key: string | null;
   sub_amount: number | null;
+  sub_tx_hash: string | null;
+  sub_network: string | null;
 };
 
 function planLabel(
@@ -1069,6 +1071,41 @@ function UsersTab() {
                   "No subscription yet"
                 )}
               </p>
+              {u.sub_status === "pending" && u.sub_tx_hash && (
+                <div className="mt-2 rounded-xl bg-white/5 p-2">
+                  <div className="text-[11px] text-white/45">
+                    Proof of payment (TX hash)
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <span className="break-all font-mono text-xs text-white/80">
+                      {u.sub_tx_hash}
+                    </span>
+                    <a
+                      href={
+                        /tron/i.test(u.sub_network || "")
+                          ? `https://tronscan.org/#/transaction/${u.sub_tx_hash}`
+                          : /btc/i.test(u.sub_network || "")
+                          ? `https://www.blockchain.com/btc/tx/${u.sub_tx_hash}`
+                          : /eth|erc/i.test(u.sub_network || "")
+                          ? `https://etherscan.io/tx/${u.sub_tx_hash}`
+                          : /sol/i.test(u.sub_network || "")
+                          ? `https://solscan.io/tx/${u.sub_tx_hash}`
+                          : "#"
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 rounded-md bg-green/15 px-2 py-1 text-[11px] font-semibold text-green-glow hover:bg-green/25"
+                    >
+                      View on explorer ↗
+                    </a>
+                  </div>
+                </div>
+              )}
+              {u.sub_status === "pending" && !u.sub_tx_hash && (
+                <p className="mt-2 text-xs text-red-glow">
+                  ⚠ No TX hash submitted — user has NOT sent proof of payment.
+                </p>
+              )}
             </div>
           {u.role !== "admin" && (
             <div className="flex flex-wrap items-center gap-2">

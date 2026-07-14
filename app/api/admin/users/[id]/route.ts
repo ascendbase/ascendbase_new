@@ -42,3 +42,49 @@ export async function POST(
   }
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  await initDb();
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin")
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+  const { id } = await params;
+  const uid = Number(id);
+  if (!Number.isInteger(uid))
+    return NextResponse.json({ error: "Invalid id." }, { status: 400 });
+
+  // Never delete an admin account (avoids locking the owner out).
+  const target = await db.execute({
+    sql: "SELECT role FROM users WHERE id = ?",
+    args: [uid],
+  });
+  if (!target.rows.length)
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
+  if ((target.rows[0] as unknown as { role: string }).role === "admin")
+    return NextResponse.json(
+      { error: "Cannot delete an admin account." },
+      { status: 403 }
+    );
+
+  // Remove all of the user's data, then the account itself.
+  await db.execute({
+    sql: "DELETE FROM subscriptions WHERE user_id = ?",
+    args: [uid],
+  });
+  await db.execute({
+    sql: "DELETE FROM support_messages WHERE thread_id IN (SELECT id FROM support_threads WHERE user_id = ?)",
+    args: [uid],
+  });
+  await db.execute({
+    sql: "DELETE FROM support_threads WHERE user_id = ?",
+    args: [uid],
+  });
+  await db.execute({
+    sql: "DELETE FROM users WHERE id = ?",
+    args: [uid],
+  });
+  return NextResponse.json({ ok: true });
+}

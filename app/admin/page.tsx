@@ -1018,6 +1018,28 @@ function UsersTab() {
     setGrantPlans(init);
   }
 
+  async function del(id: number) {
+    if (
+      !confirm(
+        "Permanently delete this user AND all their data (subscriptions, support threads + messages)? This cannot be undone."
+      )
+    )
+      return;
+    const r = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+    if (r.ok) {
+      const d = await fetch("/api/admin/users").then((r) => r.json());
+      setUsers(d.users || []);
+      const init: Record<number, string> = {};
+      for (const u of d.users || []) {
+        init[u.id] = u.sub_plan_key || PLANS[0].key;
+      }
+      setGrantPlans(init);
+    } else {
+      const d = await r.json().catch(() => ({}));
+      alert(d.error || "Delete failed.");
+    }
+  }
+
   return (
     <div className="space-y-3">
       {users.map((u) => {
@@ -1074,6 +1096,12 @@ function UsersTab() {
                 onClick={() => act(u.id, "revoke")}
               >
                 Revoke
+              </GhostButton>
+              <GhostButton
+                className="px-4 py-2 text-sm text-red-glow"
+                onClick={() => del(u.id)}
+              >
+                Delete
               </GhostButton>
             </div>
           )}

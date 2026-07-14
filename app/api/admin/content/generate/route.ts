@@ -79,7 +79,6 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: modelName,
           temperature: 0.7,
-          response_format: { type: "json_object" },
           messages: [
             { role: "system", content: SYSTEM },
             {
@@ -98,8 +97,22 @@ export async function POST(req: NextRequest) {
       );
     }
     const data = await r.json();
-    const raw = data?.choices?.[0]?.message?.content || "{}";
-    const parsed = JSON.parse(raw);
+    const raw = data?.choices?.[0]?.message?.content || "";
+    // Some models don't support response_format:"json_object" (e.g.
+    // tencent/hy3 only allows json_schema), and others wrap the JSON in
+    // markdown fences. Parse defensively: strip ``` fences and grab the
+    // first balanced {...} object.
+    let parsed: any = {};
+    try {
+      let s = raw.trim();
+      s = s.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+      const start = s.indexOf("{");
+      const end = s.lastIndexOf("}");
+      if (start >= 0 && end > start) s = s.slice(start, end + 1);
+      parsed = JSON.parse(s || "{}");
+    } catch {
+      parsed = {};
+    }
     if (Array.isArray(parsed.blocks)) {
       blocks = parsed.blocks
         .filter((b: any) => b && typeof b.text === "string" && b.text.trim())

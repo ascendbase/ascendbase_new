@@ -24,10 +24,10 @@ const benefits = [
     icon: "↻",
   },
     {
-    t: "The premium vault",
-    d: "Practical steps, personal facial evaluation, theory deep dives, exploration of craniofacial development patterns.",
-    icon: "▦",
-  },
+      t: "The premium vault",
+      d: "Practical steps, personal facial evaluation, theory deep dives, exploration of craniofacial development patterns.",
+      icon: "▦",
+    },
   {
     t: "Yours to keep",
     d: "For the duration of your access you can read, revisit, and save whatever you need.",

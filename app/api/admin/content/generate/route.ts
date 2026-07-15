@@ -26,8 +26,10 @@ You will be given a topic and an access tier. Return ONLY valid JSON (no markdow
 }
 
 Rules — ALWAYS follow:
-- 6-12 text blocks. The FIRST block is a short intro/title paragraph. Then use clear section headings as their OWN blocks (e.g. "## Bone structure vs soft tissue").
+- 6-12 text blocks. The FIRST block MUST be a section heading starting with "## " (e.g. "## Bone structure vs soft tissue") — never start the first block with plain paragraph text. Then use clear section headings as their OWN blocks throughout.
 - ALWAYS use Markdown inside each block: **bold** for key terms, bullet lists with "- " for points, and "## " for section headings. Use bullet points liberally — they are the default way to present lists and steps.
+- Use ONLY the SHORT dash "-" for bullet lists and any dash. NEVER use the long em-dash "—" (or any "–"/"—" character) anywhere in the text — replace it with "-" or rephrase.
+- The post TITLE must be in sentence case: ONLY the very first word starts with a capital letter; all other words are lowercase (e.g. "How facial leanness changes your look"). No Title Case, no ALL CAPS.
 - Each block is ONE coherent unit (a heading, or a paragraph of 2-5 sentences, or a bullet list). Do not cram everything into one block.
 - Follow the INSTRUCTION precisely: if it says summarize, condense; if reformat, restructure; if extract, pull the specific parts requested.
 - Keep it factual and specific. No disclaimers, no "in conclusion" filler.

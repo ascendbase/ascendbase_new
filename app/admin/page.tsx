@@ -176,6 +176,12 @@ function ContentTab() {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiMsg, setAiMsg] = useState("");
 
+  // AI-edit-existing-post state.
+  const [aiEditOpen, setAiEditOpen] = useState(false);
+  const [aiEditInstr, setAiEditInstr] = useState("");
+  const [aiEditBusy, setAiEditBusy] = useState(false);
+  const [aiEditMsg, setAiEditMsg] = useState("");
+
   async function generateAi() {
     if (!aiSource.trim()) {
       setAiMsg("Paste the source text to transform.");
@@ -203,6 +209,43 @@ function ContentTab() {
     } else {
       const d = await r.json().catch(() => ({}));
       setAiMsg(d.error || "Generation failed.");
+    }
+  }
+
+  async function aiEditPost() {
+    if (!editing || (editing.kind || "post") !== "post") {
+      setAiEditMsg("Open a post (not a folder) to AI-edit it.");
+      return;
+    }
+    if (!aiEditInstr.trim()) {
+      setAiEditMsg("Describe what to change.");
+      return;
+    }
+    setAiEditBusy(true);
+    setAiEditMsg("");
+    const r = await fetch(`/api/admin/content/${editing.id}/ai-edit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instruction: aiEditInstr }),
+    });
+    setAiEditBusy(false);
+    if (r.ok) {
+      const d = await r.json();
+      // Replace text blocks' content in place (review before Save).
+      setBlocks((bs) =>
+        bs.map((b, i) => {
+          const nb = d.blocks?.[i];
+          if (b.type === "text" && nb && nb.type === "text")
+            return { ...b, text: nb.text };
+          return b;
+        })
+      );
+      setAiEditMsg("Text blocks updated — review below, then click Save to persist.");
+      setAiEditOpen(false);
+      setAiEditInstr("");
+    } else {
+      const d = await r.json().catch(() => ({}));
+      setAiEditMsg(d.error || "AI edit failed.");
     }
   }
 
@@ -565,6 +608,52 @@ function ContentTab() {
           Create a folder to group topics, or a post (text + image blocks) nested
           under any folder. Posts show as titles in the vault and expand on click.
         </p>
+
+        {editing && kind === "post" && (
+          <GlassCard className="border-green/30">
+            <button
+              onClick={() => setAiEditOpen((o) => !o)}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <span className="font-bold text-green-glow">
+                ✨ AI-edit this post
+              </span>
+              <span className="text-sm text-white/50">
+                {aiEditOpen ? "▲" : "▼"}
+              </span>
+            </button>
+            {aiEditOpen && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <Label>What to change in the existing text</Label>
+                  <TextArea
+                    value={aiEditInstr}
+                    onChange={(e) => setAiEditInstr(e.target.value)}
+                    placeholder="e.g. Improve grammar · Rephrase from the bone-mechanics angle · Make it more concise"
+                    className="min-h-[90px]"
+                  />
+                </div>
+                <PrimaryButton
+                  tone="green"
+                  className="w-full"
+                  onClick={aiEditPost}
+                  disabled={aiEditBusy}
+                >
+                  {aiEditBusy ? "Editing…" : "Run AI edit"}
+                </PrimaryButton>
+                <p className="text-xs text-white/45">
+                  Rewrites ONLY the text blocks of this post per your instruction
+                  (keeps images, order and previews). Review the result below,
+                  then click <b className="text-white/70">Save</b> to persist.
+                </p>
+              </div>
+            )}
+            {aiEditMsg && (
+              <p className="mt-2 text-sm text-green-glow">{aiEditMsg}</p>
+            )}
+          </GlassCard>
+        )}
+
         <div className="mt-4 space-y-3">
           <div className="flex gap-2">
             {(["post", "folder"] as const).map((k: "post" | "folder") => (

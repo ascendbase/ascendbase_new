@@ -47,3 +47,7 @@ next-env.d.ts
 # uploaded vault images (keep the folder + .gitkeep)
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# local vault dumps / backups (contain live content, keep out of git)
+vault_dump.txt
+vault_backup_*.json

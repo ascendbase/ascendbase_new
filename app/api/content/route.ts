@@ -76,3 +76,39 @@ export async function POST(req: NextRequest) {
   }
   return NextResponse.json({ ok: true });
 }
+
+/**
+ * Reorder content items. Body: { items: [{ id, parent_id }] } in the
+ * desired display order. Items are re-indexed by their sibling group
+ * (same parent_id), so order_index is consistent within each folder level.
+ * Admin only.
+ */
+export async function PATCH(req: NextRequest) {
+  await initDb();
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin")
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+
+  const { items } = (await req.json().catch(() => ({}))) as {
+    items?: { id: number; parent_id: number | null }[];
+  };
+  if (!Array.isArray(items) || !items.length)
+    return NextResponse.json({ error: "items required." }, { status: 400 });
+
+  // Group by parent_id and assign sequential order_index within each group.
+  const byParent = new Map<number | null, number[]>();
+  for (const it of items) {
+    const pid = it.parent_id ?? null;
+    if (!byParent.has(pid)) byParent.set(pid, []);
+    byParent.get(pid)!.push(it.id);
+  }
+  for (const [, ids] of byParent) {
+    for (let i = 0; i < ids.length; i++) {
+      await db.execute({
+        sql: `UPDATE content SET order_index = ? WHERE id = ?`,
+        args: [i, ids[i]],
+      });
+    }
+  }
+  return NextResponse.json({ ok: true });
+}

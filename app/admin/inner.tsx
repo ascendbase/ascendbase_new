@@ -450,6 +450,36 @@ function ContentTab() {
     await load();
   }
 
+  // Move an item one step up/down within its sibling group, then persist
+  // the new order via PATCH /api/content/reorder.
+  async function moveItem(id: number, dir: -1 | 1) {
+    const it = items.find((x) => x.id === id);
+    if (!it) return;
+    const pid = it.parent_id ?? null;
+    const sibs = items
+      .filter((x) => (x.parent_id ?? null) === pid)
+      .sort(
+        (a, b) =>
+          (a.order_index || 0) - (b.order_index || 0) ||
+          (a.updated_at < b.updated_at ? 1 : -1)
+      );
+    const i = sibs.findIndex((x) => x.id === id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= sibs.length) return;
+    const reordered = [...sibs];
+    [reordered[i], reordered[j]] = [reordered[j], reordered[i]];
+    const payload = reordered.map((x) => ({
+      id: x.id,
+      parent_id: x.parent_id ?? null,
+    }));
+    await fetch("/api/content/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: payload }),
+    });
+    await load();
+  }
+
   const folders = items.filter((i) => (i.kind || "post") === "folder");
   function treeRows(
     parentId: number | null,
@@ -590,6 +620,22 @@ function ContentTab() {
                 <p className="truncate text-sm text-white/45">
                   {isFolder ? "folder" : `/${it.slug}`}
                 </p>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  className="rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10"
+                  onClick={() => moveItem(it.id, -1)}
+                  title="Move up"
+                >
+                  ↑
+                </button>
+                <button
+                  className="rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10"
+                  onClick={() => moveItem(it.id, 1)}
+                  title="Move down"
+                >
+                  ↓
+                </button>
               </div>
               <GhostButton className="px-4 py-2 text-sm" onClick={() => edit(it)}>
                 Edit

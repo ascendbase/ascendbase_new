@@ -228,15 +228,33 @@ function ContentTab() {
     setAiEditBusy(false);
     if (r.ok) {
       const d = await r.json();
-      setBlocks((bs) =>
-        bs.map((b, i) => {
-          const nb = d.blocks?.[i];
-          if (b.type === "text" && nb && nb.type === "text")
-            return { ...b, text: nb.text };
-          return b;
-        })
-      );
-      setAiEditMsg("Text blocks updated — review below, then click Save to persist.");
+      if (d.added && d.added > 0) {
+        // ADD mode: keep existing blocks, append the new ones after them.
+        const existing = blocks;
+        const added = (d.blocks || []).slice(existing.length).map(
+          (b: any) => ({
+            id: uid(),
+            type: "text",
+            text: typeof b?.text === "string" ? b.text : "",
+            preview: false,
+          })
+        );
+        setBlocks((bs) => [...bs, ...added]);
+        setAiEditMsg(
+          `Added ${added.length} new text block(s) after the existing ones — review below, then click Save to persist.`
+        );
+      } else {
+        // EDIT mode: rewrite existing text blocks in place.
+        setBlocks((bs) =>
+          bs.map((b, i) => {
+            const nb = d.blocks?.[i];
+            if (b.type === "text" && nb && nb.type === "text")
+              return { ...b, text: nb.text };
+            return b;
+          })
+        );
+        setAiEditMsg("Text blocks updated — review below, then click Save to persist.");
+      }
       setAiEditOpen(false);
       setAiEditInstr("");
     } else {

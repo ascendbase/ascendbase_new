@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
-import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "ascendbase — Patching the Looksmatrix",
@@ -41,7 +40,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         {children}
-        <Footer />
         <Analytics />
       </body>
     </html>

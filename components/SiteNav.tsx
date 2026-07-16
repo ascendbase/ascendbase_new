@@ -70,6 +70,9 @@ export default function SiteNav() {
                     Support
                   </Link>
                 )}
+                <Link href="/connect" className={`${linkCls("/connect")} whitespace-nowrap`}>
+                  Connect
+                </Link>
                 {user.role === "admin" && (
                   <Link href="/admin" className={`${linkCls("/admin")} whitespace-nowrap`}>
                     Admin
@@ -87,10 +90,13 @@ export default function SiteNav() {
                 <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")}`}>
                   Benefits
                 </Link>
-                <Link href="/login" className={`hidden sm:block ${linkCls("/login")}`}>
-                  Log in
-                </Link>
-                <Link
+                 <Link href="/login" className={`hidden sm:block ${linkCls("/login")}`}>
+                   Log in
+                 </Link>
+                 <Link href="/connect" className={`hidden sm:block ${linkCls("/connect")} whitespace-nowrap`}>
+                   Connect
+                 </Link>
+                 <Link
                   href="/signup"
                   className="btn-red shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold sm:px-5 sm:py-2.5 sm:text-[14px]"
                 >

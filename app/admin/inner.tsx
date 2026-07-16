@@ -1181,9 +1181,34 @@ function SupportTab() {
 }
 
 /* ---------------- USERS ---------------- */
+type Stats = {
+  range: string;
+  totalSignups: number;
+  paid19: number;
+  paid49: number;
+  paid99: number;
+};
+
+const RANGES = [
+  { key: "7d", label: "7 days" },
+  { key: "30d", label: "30 days" },
+  { key: "90d", label: "90 days" },
+  { key: "all", label: "All time" },
+];
+
 function UsersTab() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [grantPlans, setGrantPlans] = useState<Record<number, string>>({});
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [range, setRange] = useState<string>("all");
+
+  async function loadStats(r: string) {
+    const d = await fetch(`/api/admin/users?range=${r}`).then((res) =>
+      res.ok ? res.json() : null
+    );
+    if (d?.stats) setStats(d.stats);
+  }
+
   useEffect(() => {
     fetch("/api/admin/users")
       .then((r) => (r.ok ? r.json() : null))
@@ -1195,8 +1220,14 @@ function UsersTab() {
           init[u.id] = u.sub_plan_key || PLANS[0].key;
         }
         setGrantPlans(init);
+        if (d.stats) setStats(d.stats);
       });
   }, []);
+
+  function changeRange(r: string) {
+    setRange(r);
+    loadStats(r);
+  }
 
   async function act(id: number, action: "grant" | "revoke", planKey?: string) {
     await fetch(`/api/admin/users/${id}`, {
@@ -1237,6 +1268,52 @@ function UsersTab() {
 
   return (
     <div className="space-y-3">
+      <GlassCard className="border-red/30">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <div className="text-2xl font-black text-white">
+                {stats ? stats.totalSignups : "—"}
+              </div>
+              <div className="text-xs text-white/45">Total sign-ups</div>
+            </div>
+            <div>
+              <div className="text-2xl font-black text-green-glow">
+                {stats ? stats.paid19 : "—"}
+              </div>
+              <div className="text-xs text-white/45">Paid · 19 USDT</div>
+            </div>
+            <div>
+              <div className="text-2xl font-black text-green-glow">
+                {stats ? stats.paid49 : "—"}
+              </div>
+              <div className="text-xs text-white/45">Paid · 49 USDT</div>
+            </div>
+            <div>
+              <div className="text-2xl font-black text-green-glow">
+                {stats ? stats.paid99 : "—"}
+              </div>
+              <div className="text-xs text-white/45">Paid · 99 USDT</div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {RANGES.map((r) => (
+              <button
+                key={r.key}
+                onClick={() => changeRange(r.key)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  range === r.key
+                    ? "bg-red text-black"
+                    : "bg-white/5 text-white/60 hover:bg-white/10"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </GlassCard>
+
       {users.map((u) => {
         const purchased = planLabel(u.sub_plan_key, u.sub_status, u.sub_amount);
         const sel = grantPlans[u.id] || u.sub_plan_key || PLANS[0].key;

@@ -470,7 +470,7 @@ function ContentTab() {
       id: x.id,
       parent_id: x.parent_id ?? null,
     }));
-    await fetch("/api/content/reorder", {
+    await fetch("/api/content", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items: payload }),

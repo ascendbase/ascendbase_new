@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
+import MusicPlayer from "@/components/MusicPlayer";
 import { Container, GlassCard, PrimaryButton, Badge } from "@/components/ui";
 import { renderMarkdown } from "@/lib/markdown";
 
@@ -326,6 +327,7 @@ export default function DashboardPage() {
           )}
         </GlassCard>
       </Container>
+      <MusicPlayer />
     </>
   );
 }

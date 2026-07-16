@@ -39,9 +39,22 @@ const benefits = [
   },
 ];
 
-function TierCard({ p, loggedIn }: { p: typeof PLANS[number]; loggedIn: boolean }) {
+// CTA target based on the visitor's current plan:
+//  - no paid plan (free or logged-out) -> Unlock -> /checkout
+//  - 19 (vault) or 49 (advice) -> Upgrade -> /checkout?upgrade=<key>
+//    (follows the account-page upgrade logic: pay only the difference)
+//  - 99 (coaching, top tier) -> nothing higher, go straight to vault
+function ctaFor(key: string | null): { label: string; href: string } {
+  if (key === "vault") return { label: "Upgrade", href: "/checkout?upgrade=vault" };
+  if (key === "advice") return { label: "Upgrade", href: "/checkout?upgrade=advice" };
+  if (key === "coaching") return { label: "Open vault →", href: "/dashboard" };
+  return { label: "Unlock", href: "/checkout" };
+}
+
+function TierCard({ p, planKey }: { p: typeof PLANS[number]; planKey: string | null }) {
   const [open, setOpen] = useState(false);
   const visible = open ? p.features : p.features.slice(0, 3);
+  const cta = ctaFor(planKey);
   return (
     <GlassCard className="flex h-full flex-col">
       <div className="text-sm font-semibold text-white/80">{p.name}</div>
@@ -64,9 +77,10 @@ function TierCard({ p, loggedIn }: { p: typeof PLANS[number]; loggedIn: boolean 
         </button>
       )}
       <div className="mt-auto pt-5">
-        <Link href={loggedIn ? "/dashboard" : "/checkout"}>
+        <Link href={cta.href}>
           <PrimaryButton className="w-full py-2.5 text-sm">
-            {loggedIn ? "Open vault →" : "Unlock →"}
+            {cta.label}
+            {cta.href === "/dashboard" ? " →" : ""}
           </PrimaryButton>
         </Link>
       </div>
@@ -76,6 +90,7 @@ function TierCard({ p, loggedIn }: { p: typeof PLANS[number]; loggedIn: boolean 
 
 export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
+  const [planKey, setPlanKey] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
@@ -83,6 +98,12 @@ export default function Home() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         setLoggedIn(!!(d && d.user));
+        const sub = d?.subscription;
+        setPlanKey(
+          sub && sub.status === "active" && sub.planKey && sub.planKey !== "free"
+            ? sub.planKey
+            : null
+        );
         setChecked(true);
       })
       .catch(() => {
@@ -112,21 +133,16 @@ export default function Home() {
                 ascend<span className="text-red-glow">base</span>
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg text-white/60 sm:text-xl">
-                The system-level knowledge base on male facial attractiveness and
+                The system-level knowledge based on the science behind facial attractiveness and
                 craniofacial development. Start free — upgrade with crypto only when
-                you want the full vault.
+                you want the full vault or personal solutions.
               </p>
               <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-                {checked && loggedIn ? (
-                  <Link href="/dashboard">
+                {checked && (
+                  <Link href={ctaFor(planKey).href}>
                     <PrimaryButton className="px-8 py-3.5 text-base">
-                      Open vault →
-                    </PrimaryButton>
-                  </Link>
-                ) : (
-                  <Link href="/signup">
-                    <PrimaryButton className="px-8 py-3.5 text-base">
-                      Sign up free →
+                      {ctaFor(planKey).label}
+                      {ctaFor(planKey).href === "/dashboard" ? " →" : ""}
                     </PrimaryButton>
                   </Link>
                 )}
@@ -249,7 +265,7 @@ export default function Home() {
 
               {/* PAID TIERS */}
               {PLANS.map((p) => (
-                <TierCard key={p.key} p={p} loggedIn={checked && loggedIn} />
+                <TierCard key={p.key} p={p} planKey={planKey} />
               ))}
             </div>
 

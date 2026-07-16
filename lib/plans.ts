@@ -47,7 +47,7 @@ export const PLANS: Plan[] = [
     description:
       "Get in contact with me directly and send your face. You receive a complete, personal breakdown of your looks:",
     features: [
-      "Direct line to me — message me anytime in your personal built-in chat messenger",
+      "Direct line to me - message me anytime in your personal built-in chat messenger",
       "Full list of your individual facial flaws",
       "Individual high quality face morphs with 2 intensity options",
       "Full package of your facial ratios and your harmony score",
@@ -65,7 +65,7 @@ export const PLANS: Plan[] = [
       "A full month of hands-on coaching with actual, practical looksmaxing steps tailored to you — not just theory.",
     features: [
       // Everything in the 19 & 49 tiers, plus:
-      "Direct line to me — message me anytime in your personal built-in chat messenger",
+      "Direct line to me - message me anytime in your personal built-in chat messenger",
       "Full access to all vault content (free + members-only posts)",
       "Full list of your individual facial flaws",
       "Individual high quality face morphs with 2 intensity options",

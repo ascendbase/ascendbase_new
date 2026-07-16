@@ -99,7 +99,7 @@ export default function SignupPage() {
         <GlassCard className="w-full max-w-md fade-up">
           <h1 className="text-2xl font-black tracking-tight">Create your account</h1>
           <p className="mt-1 text-sm text-white/55">
-            Sign up free — some vault content is open to everyone. Upgrade
+            Some vault content is open to everyone. Upgrade
             anytime with crypto (any wallet) to unlock everything.
           </p>
           <form onSubmit={submit} className="mt-6 space-y-4">
@@ -131,7 +131,7 @@ export default function SignupPage() {
               </p>
             )}
             <PrimaryButton type="submit" className="w-full" disabled={busy}>
-              {busy ? "Creating…" : "Create free account →"}
+              {busy ? "Creating…" : "Create account →"}
             </PrimaryButton>
           </form>
           <p className="mt-5 text-center text-sm text-white/50">

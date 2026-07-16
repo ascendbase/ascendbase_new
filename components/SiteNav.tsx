@@ -42,70 +42,70 @@ export default function SiteNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-2xl">
-        <nav className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-2 px-4 sm:px-8">
-          <Link href="/" className="flex shrink-0 items-center gap-2">
-            <span className="text-[16px] font-bold tracking-tight sm:text-[17px]">
-              ascend<span className="text-red-glow">base</span>
-            </span>
-          </Link>
+      <nav className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-2.5 sm:flex-row sm:h-16 sm:items-center sm:justify-between sm:gap-2 sm:py-0 sm:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <span className="text-[16px] font-bold tracking-tight sm:text-[17px]">
+            ascend<span className="text-red-glow">base</span>
+          </span>
+        </Link>
 
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-1 sm:gap-5">
-            {loading ? null : user ? (
-              <>
-                <Link href="/dashboard" className={`${linkCls("/dashboard")} whitespace-nowrap`}>
-                  Vault
+        <div className="flex min-w-0 flex-wrap items-center justify-start gap-x-4 gap-y-2 sm:justify-end sm:gap-x-5">
+          {loading ? null : user ? (
+            <>
+              <Link href="/dashboard" className={`${linkCls("/dashboard")} whitespace-nowrap py-1`}>
+                Vault
+              </Link>
+              <Link href="/subscription" className={`${linkCls("/subscription")} whitespace-nowrap py-1`}>
+                Account
+              </Link>
+              {/* Free & 19 tiers get the general Support page.
+                  49 & 99 tiers get the Personal line instead
+                  (their Support == Personal, so we don't show both). */}
+              {isPersonal ? (
+                <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap py-1`}>
+                  Personal
                 </Link>
-                <Link href="/subscription" className={`${linkCls("/subscription")} whitespace-nowrap`}>
-                  Account
+              ) : (
+                <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap py-1`}>
+                  Support
                 </Link>
-                {/* Free & 19 tiers get the general Support page.
-                    49 & 99 tiers get the Personal line instead
-                    (their Support == Personal, so we don't show both). */}
-                {isPersonal ? (
-                  <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap`}>
-                    Personal
-                  </Link>
-                ) : (
-                  <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap`}>
-                    Support
-                  </Link>
-                )}
-                <Link href="/connect" className={`${linkCls("/connect")} whitespace-nowrap`}>
-                  Connect
+              )}
+              <Link href="/connect" className={`${linkCls("/connect")} whitespace-nowrap py-1`}>
+                Connect
+              </Link>
+              {user.role === "admin" && (
+                <Link href="/admin" className={`${linkCls("/admin")} whitespace-nowrap py-1`}>
+                  Admin
                 </Link>
-                {user.role === "admin" && (
-                  <Link href="/admin" className={`${linkCls("/admin")} whitespace-nowrap`}>
-                    Admin
-                  </Link>
-                )}
-                <button
-                  onClick={logout}
-                  className="btn-ghost shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-semibold sm:px-4 sm:py-2"
-                >
-                  Log out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")}`}>
-                  Benefits
-                </Link>
-                 <Link href="/login" className={`hidden sm:block ${linkCls("/login")}`}>
-                   Log in
-                 </Link>
-                 <Link href="/connect" className={`hidden sm:block ${linkCls("/connect")} whitespace-nowrap`}>
-                   Connect
-                 </Link>
-                 <Link
-                  href="/signup"
-                  className="btn-red shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold sm:px-5 sm:py-2.5 sm:text-[14px]"
-                >
-                  Get access
-                </Link>
-              </>
-            )}
-          </div>
-        </nav>
+              )}
+              <button
+                onClick={logout}
+                className="btn-ghost shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-semibold"
+              >
+                Log out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")} py-1`}>
+                Benefits
+              </Link>
+               <Link href="/login" className={`${linkCls("/login")} whitespace-nowrap py-1`}>
+                 Log in
+               </Link>
+               <Link href="/connect" className={`${linkCls("/connect")} whitespace-nowrap py-1`}>
+                 Connect
+               </Link>
+               <Link
+                href="/signup"
+                className="btn-red shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold sm:px-5 sm:py-2.5 sm:text-[14px]"
+              >
+                Get access
+              </Link>
+            </>
+          )}
+        </div>
+      </nav>
     </header>
   );
 }

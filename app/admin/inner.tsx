@@ -451,18 +451,16 @@ function ContentTab() {
   }
 
   // Move an item one step up/down within its sibling group, then persist
-  // the new order via PATCH /api/content/reorder.
+  // the new order via PATCH /api/content/reorder. Sort MUST match the
+  // GET (order_index ASC, then id ASC) so the on-screen index equals
+  // the index we swap here.
   async function moveItem(id: number, dir: -1 | 1) {
     const it = items.find((x) => x.id === id);
     if (!it) return;
     const pid = it.parent_id ?? null;
     const sibs = items
       .filter((x) => (x.parent_id ?? null) === pid)
-      .sort(
-        (a, b) =>
-          (a.order_index || 0) - (b.order_index || 0) ||
-          (a.updated_at < b.updated_at ? 1 : -1)
-      );
+      .sort((a, b) => (a.order_index || 0) - (b.order_index || 0) || a.id - b.id);
     const i = sibs.findIndex((x) => x.id === id);
     const j = i + dir;
     if (i < 0 || j < 0 || j >= sibs.length) return;

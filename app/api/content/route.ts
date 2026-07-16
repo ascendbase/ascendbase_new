@@ -18,7 +18,7 @@ export async function GET() {
   const rows = await db.execute({
     sql: `SELECT id, slug, title, kind, parent_id, order_index, published, access
           FROM content WHERE ${where}
-          ORDER BY kind DESC, order_index ASC, updated_at DESC`,
+          ORDER BY order_index ASC, id ASC`,
     args: [],
   });
   return NextResponse.json({ items: rows.rows, accessUntil: sub?.expires_at || null });

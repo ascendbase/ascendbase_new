@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
@@ -74,6 +74,9 @@ export default function DashboardPage() {
   const [openPost, setOpenPost] = useState<number | null>(null);
   const [postData, setPostData] = useState<Record<number, any>>({});
   const [postLoading, setPostLoading] = useState<number | null>(null);
+  // Ref to the open-post scroll container, so we can auto-close it
+  // when the reader scrolls to the very end (no need to scroll back up).
+  const postRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -184,7 +187,13 @@ export default function DashboardPage() {
           </button>
           {open && (
             <div
-              className="tree-content my-2 rounded-2xl border border-white/10 bg-black/30 p-4"
+              ref={postRef}
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4)
+                  setOpenPost(null);
+              }}
+              className="tree-content my-2 max-h-[60vh] overflow-y-auto rounded-2xl border border-white/10 bg-black/30 p-4"
               style={{ ["--d" as any]: depth }}
             >
               {postLoading === n.id && (

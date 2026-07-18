@@ -19,11 +19,14 @@ export async function POST(req: NextRequest) {
     upgradeFrom?: string;
   };
   const plan = getPlan(body.planKey) || PLANS[0];
+  // The price actually charged: promo salePrice when set, else the list price.
+  const charged = (p: { price: number; salePrice?: number }) =>
+    p.salePrice ?? p.price;
 
   // Upgrade flow: user only pays the prorated difference to the higher
   // tier (never a downgrade). Compute remaining value of the current
-  // active sub and subtract it from the new plan's full price.
-  let amount = plan.price;
+  // active sub and subtract it from the new plan's charged price.
+  let amount = charged(plan);
   let upgradeFrom: string | null = null;
   if (body.upgradeFrom) {
     const cur = getPlan(body.upgradeFrom);
@@ -40,8 +43,8 @@ export async function POST(req: NextRequest) {
             )
           )
         : 0;
-      const remainingValue = (cur.price * remaining) / daysTotal;
-      amount = Math.max(0, Math.round((plan.price - remainingValue) * 100) / 100);
+      const remainingValue = (charged(cur) * remaining) / daysTotal;
+      amount = Math.max(0, Math.round((charged(plan) - remainingValue) * 100) / 100);
       upgradeFrom = cur.key;
     }
   }

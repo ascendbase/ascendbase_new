@@ -3,6 +3,8 @@ export type Plan = {
   key: string;
   name: string;
   price: number;
+  /** Promo price shown crossed-out alongside `price` (limited offer). */
+  salePrice?: number;
   days: number;
   description: string;
   features: string[];
@@ -27,6 +29,7 @@ export const PLANS: Plan[] = [
     key: "vault",
     name: "Full Vault Access",
     price: 19,
+    salePrice: 9,
     days: 30,
     description:
       "Open the entire gated vault — every lesson, routine and reference post, on demand.",
@@ -43,6 +46,7 @@ export const PLANS: Plan[] = [
     key: "advice",
     name: "Personal Looksmaxing Advice",
     price: 49,
+    salePrice: 19,
     days: 30,
     description:
       "Get in contact with me directly and send your face. You receive a complete, personal breakdown of your looks:",
@@ -60,6 +64,7 @@ export const PLANS: Plan[] = [
     key: "coaching",
     name: "Personal Monthly Coaching",
     price: 99,
+    salePrice: 49,
     days: 30,
     description:
       "A full month of hands-on coaching with actual, practical looksmaxing steps tailored to you — not just theory.",

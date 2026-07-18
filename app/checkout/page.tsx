@@ -23,6 +23,21 @@ type Invoice = {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  // Price display: promo sale price (big) + crossed-out original, or
+  // just the price when there's no promo. Matches the charged amount.
+  function PriceBlock({ p, big = false }: { p: Plan; big?: boolean }) {
+    const sale = p.salePrice;
+    const green = big ? "text-2xl" : "text-xl";
+    if (sale != null && sale !== p.price) {
+      return (
+        <span className="flex items-baseline gap-2">
+          <span className={`font-black ${green} text-green-glow`}>{sale} USDT</span>
+          <span className="text-sm text-white/40 line-through">{p.price} USDT</span>
+        </span>
+      );
+    }
+    return <span className={`font-black ${green} text-green-glow`}>{p.price} USDT</span>;
+  }
   const [state, setState] = useState<"loading" | "ready" | "pending">("loading");
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [selPlan, setSelPlan] = useState<string>("free");
@@ -226,10 +241,16 @@ export default function CheckoutPage() {
               </div>
             </div>
           ) : !invoice ? (
-            <div className="space-y-5">
+              <div className="space-y-5">
                 <div className="text-center">
                   <Badge tone="green">Choose your plan</Badge>
-              </div>
+                </div>
+                <div className="rounded-2xl border border-green/25 bg-green/10 px-4 py-3 text-center text-sm text-white/75">
+                  Questions about a paid plan, or anything about how the payment
+                  works? <Link href="/support" className="font-semibold text-green-glow underline underline-offset-2 hover:text-green-soft">Message me in Support</Link> - I answer
+                  everyone personally and quickly, so you always know exactly what
+                  you’re getting before you actually pay for anything.
+                </div>
               <div className="space-y-3">
                 {!upgradeFrom && (
                   <button
@@ -269,17 +290,28 @@ export default function CheckoutPage() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold">{p.name}</span>
-                      <span className="text-xl font-black text-green-glow">
-                        {upgradeFrom
-                          ? `+${Math.max(
-                              0,
-                              Math.round(
-                                (p.price - (getPlan(upgradeFrom)?.price ?? 0)) * 100
-                              ) / 100
-                            )} USDT`
-                          : `${p.price} USDT`}
-                      </span>
+                      {upgradeFrom ? (
+                        <span className="text-xl font-black text-green-glow">
+                          +{Math.max(
+                            0,
+                            Math.round(
+                              ((p.salePrice ?? p.price) -
+                                (getPlan(upgradeFrom)?.salePrice ??
+                                  getPlan(upgradeFrom)?.price ??
+                                  0)) *
+                                100
+                            ) / 100
+                          )} USDT
+                        </span>
+                      ) : (
+                        <PriceBlock p={p} />
+                      )}
                     </div>
+                    {!upgradeFrom && p.salePrice != null && p.salePrice !== p.price && (
+                      <span className="mt-1 inline-block rounded-full bg-red/15 px-2 py-0.5 text-[11px] font-semibold text-red-glow">
+                        Limited offer
+                      </span>
+                    )}
                     <p className="mt-1 text-sm text-white/50">{p.description}</p>
                     <ul className="mt-2 space-y-1">
                       {p.features.map((f, i) => (

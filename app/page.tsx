@@ -58,10 +58,29 @@ function TierCard({ p, planKey }: { p: typeof PLANS[number]; planKey: string | n
   return (
     <GlassCard className="flex h-full flex-col">
       <div className="text-sm font-semibold text-white/80">{p.name}</div>
-      <div className="mt-3 text-3xl font-black">
-        {p.price}
-        <span className="text-base font-medium text-white/45"> USDT</span>
+      <div className="mt-3 flex items-baseline gap-2">
+        {p.salePrice != null && p.salePrice !== p.price ? (
+          <>
+            <span className="text-3xl font-black text-green-glow">
+              {p.salePrice}
+              <span className="text-base font-medium text-white/45"> USDT</span>
+            </span>
+            <span className="text-base font-medium text-white/35 line-through">
+              {p.price} USDT
+            </span>
+          </>
+        ) : (
+          <span className="text-3xl font-black">
+            {p.price}
+            <span className="text-base font-medium text-white/45"> USDT</span>
+          </span>
+        )}
       </div>
+      {p.salePrice != null && p.salePrice !== p.price && (
+        <span className="mt-1 inline-block rounded-full bg-red/15 px-2 py-0.5 text-[11px] font-semibold text-red-glow">
+          Limited offer
+        </span>
+      )}
       <p className="mt-1 text-xs text-white/45">{p.days} days access</p>
       <ul className="mt-4 space-y-2 text-sm text-white/60">
         {visible.map((f, i) => (

@@ -184,7 +184,7 @@ export default function DashboardPage() {
           </button>
           {open && (
             <div
-              className="tree-content my-2 max-h-[60vh] overflow-y-auto rounded-2xl border border-white/10 bg-black/30 p-4"
+              className="tree-content my-2 max-h-[120vh] overflow-y-auto rounded-2xl border border-white/10 bg-black/30 p-4"
               style={{ ["--d" as any]: depth }}
             >
               {postLoading === n.id && (

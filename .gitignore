@@ -51,3 +51,7 @@ next-env.d.ts
 # local vault dumps / backups (contain live content, keep out of git)
 vault_dump.txt
 vault_backup_*.json
+
+# dev server logs
+dev.log
+dev.err

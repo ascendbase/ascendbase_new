@@ -266,11 +266,17 @@ export default function CheckoutPage() {
                       <span className="font-bold">{FREE_PLAN.name}</span>
                       <span className="text-xl font-black text-green-glow">Free</span>
                     </div>
-                    <p className="mt-1 text-sm text-white/50">
-                      Some vault content is open to everyone. Start here, upgrade
-                      anytime with crypto.
-                    </p>
-                  </button>
+                  <p className="mt-1 text-sm text-white/50">
+                    Some vault content is open to everyone. Start here, upgrade
+                    anytime with crypto.
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    <li className="flex gap-2 text-xs text-white/60">
+                      <span className="text-green-glow">✓</span>
+                      <span>Free automatic ratios calculator</span>
+                    </li>
+                  </ul>
+                </button>
                 )}
                 {activePlans()
                   .filter((p) =>

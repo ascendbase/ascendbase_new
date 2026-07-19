@@ -37,6 +37,11 @@ const benefits = [
     d: "For the duration of your access you can read, revisit, and save whatever you need.",
     icon: "✓",
   },
+  {
+    t: "Free ratios calculator",
+    d: "Upload a photo and get instant, science-based facial ratio measurements — frontal, profile, and nose. Runs 100% in your browser.",
+    icon: "📐",
+  },
 ];
 
 // CTA target based on the visitor's current plan:
@@ -231,19 +236,52 @@ export default function Home() {
             </div>
 
             {/* curiosity hook */}
-            <GlassCard className="mx-auto mt-8 max-w-3xl border-red/25 text-center">
-              <p className="text-base leading-relaxed text-white/75 sm:text-lg">
-                Do you know what exactly drives attractiveness, besides{" "}
-                <span className="text-white/90">muh hunter eyes</span> or some other
-                buzzword? Do you know the craniofacial mechanics — the underlying
-                logic of how the face actually develops into the variety of different
-                facial types (desirable or not) we see IRL?{" "}
-                <span className="text-red-glow">
-                  This is the place with the answers to these questions.
-                </span>
-              </p>
-            </GlassCard>
-          </Container>
+              <GlassCard className="mx-auto mt-8 max-w-3xl border-red/25 text-center">
+                <p className="text-base leading-relaxed text-white/75 sm:text-lg">
+                  Do you know what exactly drives attractiveness, besides{" "}
+                  <span className="text-white/90">muh hunter eyes</span> or some other
+                  buzzword? Do you know the craniofacial mechanics — the underlying
+                  logic of how the face actually develops into the variety of different
+                  facial types (desirable or not) we see IRL?{" "}
+                  <span className="text-red-glow">
+                    This is the place with the answers to these questions.
+                  </span>
+                </p>
+              </GlassCard>
+
+              {/* FREE RATIOS CALCULATOR */}
+              <GlassCard className="mx-auto mt-8 max-w-3xl border-red/25">
+                <div className="text-center">
+                  <Badge tone="white">Free tool</Badge>
+                  <h3 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">
+                    Automatic facial ratios calculator
+                  </h3>
+                  <p className="mx-auto mt-3 max-w-xl text-white/60">
+                    Upload a photo and get instant, science-based facial ratio
+                    measurements — frontal harmony, side-profile proportions, and a
+                    dedicated nose-shape analysis. It runs 100% in your browser, so
+                    your image never leaves your device. No card, no crypto, no paid
+                    tier required — it's free for every member.
+                  </p>
+                </div>
+                <div className="mt-6 aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-black/40">
+                  <iframe
+                    className="h-full w-full"
+                    src="https://www.youtube.com/embed/6_IB3ErywNM"
+                    title="Ascendbase automatic ratios calculator"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+                <div className="mt-5 text-center">
+                  <Link href="/ratios">
+                    <PrimaryButton className="px-8 py-3 text-base">
+                      Try the calculator →
+                    </PrimaryButton>
+                  </Link>
+                </div>
+              </GlassCard>
+            </Container>
         </section>
 
         {/* VAULT / TIERS */}
@@ -272,6 +310,7 @@ export default function Home() {
                   <li>✓ Free vault posts</li>
                   <li>✓ Core theory & breakdowns</li>
                   <li>✓ Browse on demand</li>
+                  <li>✓ Free automatic ratios calculator</li>
                 </ul>
                 <div className="mt-auto pt-5">
                   <Link href="/signup">

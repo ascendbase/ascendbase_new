@@ -15,6 +15,109 @@
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --radius-2xl: 1.25rem;
   --radius-3xl: 1.75rem;
+
+  /* ---- Ratios tool theme (shadcn/ui tokens) ---- */
+  --color-background: hsl(210 25% 96.1%);
+  --color-foreground: hsl(210 9% 31%);
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(210 9% 31%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(210 9% 31%);
+  --color-primary: hsl(207 86% 72%);
+  --color-primary-foreground: hsl(210 100% 15%);
+  --color-secondary: hsl(210 20% 90%);
+  --color-secondary-foreground: hsl(210 9% 31%);
+  --color-muted: hsl(210 20% 90%);
+  --color-muted-foreground: hsl(210 9% 45%);
+  --color-accent: hsl(174 63% 37%);
+  --color-accent-foreground: hsl(0 0% 98%);
+  --color-destructive: hsl(0 84.2% 60.2%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(210 20% 85%);
+  --color-input: hsl(210 20% 88%);
+  --color-ring: hsl(207 86% 65%);
+  --font-headline: var(--font-sans);
+  --font-body: var(--font-sans);
+}
+
+/* ---- Ratios tool: dark brand scope (overrides shadcn light tokens) ---- */
+.ratios-app {
+  --color-background: #0a0a0c;
+  --color-foreground: #f5f5f7;
+  --color-card: rgba(255, 255, 255, 0.05);
+  --color-card-foreground: #f5f5f7;
+  --color-popover: rgba(20, 20, 22, 0.6);
+  --color-popover-foreground: #f5f5f7;
+  --color-primary: #d70015;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: rgba(255, 255, 255, 0.08);
+  --color-secondary-foreground: #f5f5f7;
+  --color-muted: rgba(255, 255, 255, 0.08);
+  --color-muted-foreground: rgba(245, 245, 247, 0.55);
+  --color-accent: #e8434f;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #d70015;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-input: rgba(255, 255, 255, 0.12);
+  --color-ring: #d70015;
+  background:
+    radial-gradient(1100px 620px at 50% -12%, rgba(215, 0, 21, 0.16), transparent 60%),
+    radial-gradient(900px 560px at 100% 110%, rgba(232, 67, 79, 0.1), transparent 60%),
+    #0a0a0c;
+  color: #f5f5f7;
+  min-height: 100vh;
+}
+.ratios-app .glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+.ratios-app .ratios-btn-red {
+  background: linear-gradient(180deg, #e8434f 0%, #d70015 55%, #a30010 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 10px 34px rgba(215, 0, 21, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.ratios-app .ratios-btn-red:hover { filter: brightness(1.06); }
+.ratios-app .ratios-btn-red:active { transform: scale(0.98); }
+.ratios-app .ratios-btn-red:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.3); }
+.ratios-app .ratios-btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.ratios-app .ratios-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+.ratios-app .ratios-btn-ghost:active { transform: scale(0.98); }
+.ratios-app .ratios-field {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  color: #fff;
+  padding: 0.85rem 1rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.ratios-app .ratios-field:focus {
+  border-color: rgba(215, 0, 21, 0.75);
+  box-shadow: 0 0 0 4px rgba(215, 0, 21, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+}
+.ratios-app .ratios-mode-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.ratios-app .ratios-mode-card:hover { background: rgba(255, 255, 255, 0.09); transform: translateY(-2px); }
+.ratios-app .ratios-mode-card.selected {
+  border-color: rgba(215, 0, 21, 0.8);
+  box-shadow: 0 0 0 4px rgba(215, 0, 21, 0.22), 0 10px 34px rgba(215, 0, 21, 0.25);
+  background: rgba(215, 0, 21, 0.08);
 }
 
 :root {

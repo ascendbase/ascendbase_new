@@ -49,18 +49,24 @@ export default function SiteNav() {
           </span>
         </Link>
 
+        {/* Render the nav immediately (public links while the auth check is
+            still loading) so the bar is never blank. User-specific links
+            swap in once `user` resolves. */}
         <div className="flex min-w-0 flex-wrap items-center justify-start gap-x-4 gap-y-2 sm:justify-end sm:gap-x-5">
-          {loading ? null : user ? (
+          {user ? (
             <>
               <Link href="/dashboard" className={`${linkCls("/dashboard")} whitespace-nowrap py-1`}>
                 Vault
+              </Link>
+              <Link href="/ratios" className={`${linkCls("/ratios")} whitespace-nowrap py-1`}>
+                Ratios
               </Link>
               <Link href="/subscription" className={`${linkCls("/subscription")} whitespace-nowrap py-1`}>
                 Account
               </Link>
               {/* Free & 19 tiers get the general Support page.
-                  49 & 99 tiers get the Personal line instead
-                  (their Support == Personal, so we don't show both). */}
+                   49 & 99 tiers get the Personal line instead
+                   (their Support == Personal, so we don't show both). */}
               {isPersonal ? (
                 <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap py-1`}>
                   Personal
@@ -91,17 +97,17 @@ export default function SiteNav() {
                 Benefits
               </Link>
                <Link href="/login" className={`${linkCls("/login")} whitespace-nowrap py-1`}>
-                 Log in
+                  Log in
+                </Link>
+                <Link href="/connect" className={`${linkCls("/connect")} whitespace-nowrap py-1`}>
+                  Connect
+                </Link>
+                <Link
+                 href="/signup"
+                 className="btn-red shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold sm:px-5 sm:py-2.5 sm:text-[14px]"
+               >
+                 Get access
                </Link>
-               <Link href="/connect" className={`${linkCls("/connect")} whitespace-nowrap py-1`}>
-                 Connect
-               </Link>
-               <Link
-                href="/signup"
-                className="btn-red shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold sm:px-5 sm:py-2.5 sm:text-[14px]"
-              >
-                Get access
-              </Link>
             </>
           )}
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from './components/core/Header';
 import { ImageUploader } from './components/core/ImageUploader';
 import { Instructions } from './components/core/Instructions';
@@ -90,8 +91,22 @@ export default function RatiosPage() {
   const [isPanMode, setIsPanMode] = useState(false);
   const [visualizationHint, setVisualizationHint] = useState<VisualizationHint | null>(null);
   const [appPhase, setAppPhase] = useState<AppPhase>('upload');
+  const [authLoading, setAuthLoading] = useState(true);
 
+  const router = useRouter();
   const landmarkEditorRef = useRef<LandmarkEditorRef>(null);
+
+  // Require a logged-in account (free or paid) to use the tool.
+  useEffect(() => {
+    (async () => {
+      const me = await fetch('/api/auth/me').then((r) => (r.ok ? r.json() : null));
+      if (!me || !me.user) {
+        router.replace('/login');
+        return;
+      }
+      setAuthLoading(false);
+    })();
+  }, [router]);
 
   const modeRatioDefs = useMemo<RatioDefinition[]>(
     () => (analysisMode ? RATIO_DEFINITIONS.filter((d) => d.view === analysisMode) : []),
@@ -219,6 +234,14 @@ export default function RatiosPage() {
       )}
     </div>
   );
+
+  if (authLoading) {
+    return (
+      <div className="ratios-app flex min-h-screen items-center justify-center font-sans">
+        <p className="text-white/55">Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="ratios-app min-h-screen font-sans">

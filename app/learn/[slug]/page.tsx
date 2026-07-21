@@ -6,6 +6,7 @@ import { Container, GlassCard, Badge, PrimaryButton } from "@/components/ui";
 import { db, initDb } from "@/lib/db";
 import { absUrl, DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { Blocks } from "@/lib/blocks";
+import { answerFirst } from "@/lib/answerFirst";
 
 type PostRow = {
   id: number;
@@ -132,9 +133,9 @@ export default async function LearnPost({
         : blocks.slice(0, 2)
       : blocks;
 
-  // First block becomes a standfirst (also the Speakable summary); the body
-  // then renders the remaining blocks so the line isn't duplicated.
-  const standfirst = shown[0]?.text?.trim() ?? "";
+  // Answer-first standfirst (overrides the block-based one when a curated
+  // answer exists); also used as the Speakable summary.
+  const standfirst = answerFirst(post.slug, shown[0]?.text?.trim() ?? "");
 
   const articleJsonLd = {
     "@context": "https://schema.org",

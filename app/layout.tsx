@@ -70,6 +70,9 @@ export const metadata: Metadata = {
   other: {
     "og:image:width": "1200",
     "og:image:height": "630",
+    // Discovery hint for LLM crawlers / GEO tooling. Non-standard, but
+    // increasingly read by AI assistants looking for /llms.txt.
+    llmstxt: "/llms.txt",
   },
 };
 

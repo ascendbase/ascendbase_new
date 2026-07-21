@@ -1,6 +1,36 @@
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard } from "@/components/ui";
+import type { Metadata } from "next";
+import { SITE_URL, absUrl, DEFAULT_OG_IMAGE, SOCIAL, SAME_AS } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Connect — ascendbase on Instagram, YouTube & Discord",
+  description:
+    "Follow ascendbase for looksmaxing breakdowns, craniofacial development science, and community progress. Instagram, YouTube, and Discord.",
+  keywords: [
+    "looksmaxing instagram",
+    "craniofacial youtube",
+    "looksmaxing discord",
+    "feralmaxing",
+    "ascendbase community",
+  ],
+  alternates: { canonical: "/connect" },
+  openGraph: {
+    type: "website",
+    url: absUrl("/connect"),
+    siteName: "ascendbase",
+    title: "Connect — ascendbase on Instagram, YouTube & Discord",
+    description: "Follow ascendbase for looksmaxing breakdowns and craniofacial science.",
+    images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: "ascendbase" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Connect — ascendbase",
+    description: "Follow ascendbase for looksmaxing breakdowns and craniofacial science.",
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 const LINKS = [
   {
@@ -26,6 +56,18 @@ const LINKS = [
 export default function ConnectPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: "feralmaxing",
+            url: SOCIAL.instagram,
+            sameAs: SAME_AS,
+          }),
+        }}
+      />
       <SiteNav />
       <Container className="py-12">
         <h1 className="text-3xl font-black tracking-tight">Connect</h1>
@@ -40,7 +82,7 @@ export default function ConnectPage() {
               key={l.href}
               href={l.href}
               target="_blank"
-              rel="noreferrer"
+              rel="me noreferrer"
               className="group block rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-red/40 hover:bg-white/[0.06]"
             >
               <div className="flex items-center justify-between gap-2">

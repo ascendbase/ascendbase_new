@@ -121,7 +121,7 @@ export async function POST(
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": process.env.APP_URL || "https://ascendbase.app",
+        "HTTP-Referer": process.env.APP_URL || "https://www.ascendbase.pro",
         "X-Title": "ascendbase",
       },
       body: JSON.stringify({

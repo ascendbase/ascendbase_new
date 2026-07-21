@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { db, initDb } from "@/lib/db";
 import { getCurrentUser, getActiveSubscription } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET() {
+  // Fast path: no session cookie → definitely logged out. Skip initDb()
+  // (the Turso connect) entirely so first-time / organic visitors get an
+  // instant response and the nav resolves without a database round-trip.
+  const jar = await cookies();
+  if (!jar.get("session")?.value) {
+    return NextResponse.json({ user: null });
+  }
+
   await initDb();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ user: null });

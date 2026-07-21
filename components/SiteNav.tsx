@@ -35,6 +35,24 @@ export default function SiteNav() {
     router.refresh();
   }
 
+  // Loading state: a minimal, NON-interactive placeholder with a clear
+  // status line. No mockup buttons — this prevents mis-clicks while the
+  // real nav (which depends on auth state) is still resolving.
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-2xl">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:h-16 sm:px-8">
+          <span className="text-[16px] font-bold tracking-tight sm:text-[17px]">
+            ascend<span className="text-red-glow">base</span>
+          </span>
+          <span className="animate-pulse text-[13px] font-medium text-white/40">
+            Loading the project elements…
+          </span>
+        </div>
+      </header>
+    );
+  }
+
   const linkCls = (href: string) =>
     `text-[14px] font-medium transition-colors ${
       pathname === href ? "text-white" : "text-white/55 hover:text-white"
@@ -57,6 +75,9 @@ export default function SiteNav() {
             <>
               <Link href="/dashboard" className={`${linkCls("/dashboard")} whitespace-nowrap py-1`}>
                 Vault
+              </Link>
+              <Link href="/learn" className={`${linkCls("/learn")} whitespace-nowrap py-1`}>
+                Learn
               </Link>
               <Link href="/ratios" className={`${linkCls("/ratios")} whitespace-nowrap py-1`}>
                 Ratios
@@ -95,6 +116,9 @@ export default function SiteNav() {
             <>
               <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")} py-1`}>
                 Benefits
+              </Link>
+              <Link href="/learn" className={`${linkCls("/learn")} whitespace-nowrap py-1`}>
+                Learn
               </Link>
                <Link href="/login" className={`${linkCls("/login")} whitespace-nowrap py-1`}>
                   Log in

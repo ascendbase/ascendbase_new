@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${key}`,
           "Content-Type": "application/json",
           // OpenRouter: identify the app (optional but recommended).
-          "HTTP-Referer": process.env.APP_URL || "https://ascendbase.app",
+          "HTTP-Referer": process.env.APP_URL || "https://www.ascendbase.pro",
           "X-Title": "ascendbase",
         },
         body: JSON.stringify({

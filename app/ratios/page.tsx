@@ -495,6 +495,40 @@ export default function RatiosPage() {
                 </div>
               </div>
             )}
+
+            {analysisMode !== "nose" && harmonyData && harmonyTier && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button
+                  variant="default"
+                  className="ratios-btn-red rounded-full px-4 py-1.5 text-[13px]"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      score: harmonyData.harmonyScore.toFixed(0),
+                      tier: harmonyTier.name,
+                      mode: analysisMode || "facial",
+                    });
+                    const ogUrl = `${window.location.origin}/api/og/result?${params.toString()}`;
+                    const shareUrl = `${window.location.origin}/ratios`;
+                    const text = `My ${analysisMode} facial harmony score: ${harmonyData.harmonyScore.toFixed(
+                      0
+                    )}/100 (${harmonyTier.name}) — test yours free on ascendbase`;
+                    if (navigator.share) {
+                      navigator
+                        .share({ title: "ascendbase facial ratio", text, url: shareUrl })
+                        .catch(() => {});
+                    } else {
+                      navigator.clipboard
+                        ?.writeText(`${text} ${shareUrl}`)
+                        .then(() => alert("Score + link copied — paste it anywhere!"))
+                        .catch(() => {});
+                    }
+                    new Image().src = ogUrl;
+                  }}
+                >
+                  Share my score ↗
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>

@@ -132,6 +132,10 @@ export default async function LearnPost({
         : blocks.slice(0, 2)
       : blocks;
 
+  // First block becomes a standfirst (also the Speakable summary); the body
+  // then renders the remaining blocks so the line isn't duplicated.
+  const standfirst = shown[0]?.text?.trim() ?? "";
+
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -142,6 +146,12 @@ export default async function LearnPost({
     dateModified: post.updated_at,
     mainEntityOfPage: absUrl(`/learn/${post.slug}`),
     isAccessibleForFree: post.access === "free",
+    // Speakable: lets voice assistants (and LLM-driven readers) lift the
+    // title + standfirst as the spoken answer.
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["[data-speakable-title]", "[data-speakable-summary]"],
+    },
   };
 
   const breadcrumbJsonLd = {
@@ -173,13 +183,24 @@ export default async function LearnPost({
           </Link>
           <div className="mt-4">
             <Badge tone="green">{post.access === "free" ? "Free read" : "Preview"}</Badge>
-            <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+            <h1
+              data-speakable-title
+              className="mt-3 text-4xl font-black tracking-tight sm:text-5xl"
+            >
               {post.title}
             </h1>
           </div>
 
-          <article className="mt-8">
-            <Blocks blocks={shown} />
+          {standfirst && (
+            <p
+              data-speakable-summary
+              className="mt-4 text-lg leading-relaxed text-white/70"
+            >
+              {standfirst}
+            </p>
+          )}
+          <article className="mt-6">
+            <Blocks blocks={shown.length > 1 ? shown.slice(1) : []} />
           </article>
 
           {post.access === "preview" && (
@@ -240,6 +261,15 @@ export default async function LearnPost({
               </div>
             </div>
           )}
+
+          <div className="mt-10 text-center">
+            <Link
+              href="/glossary"
+              className="text-sm text-white/55 hover:text-red-glow"
+            >
+              Glossary of facial and looksmaxing terms →
+            </Link>
+          </div>
         </Container>
       </main>
     </>

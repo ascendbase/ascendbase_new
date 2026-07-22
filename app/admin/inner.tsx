@@ -14,6 +14,7 @@ import {
   Badge,
 } from "@/components/ui";
 import { PLANS, type Plan } from "@/lib/plans";
+import VaultChatTab from "./vault-chat";
 
 type Block =
   | { id: string; type: "text"; text: string; preview?: boolean }
@@ -97,7 +98,7 @@ function uid() {
 export default function AdminInner() {
   const router = useRouter();
   const [ready, setReady] = useState(true);
-  const [tab, setTab] = useState<"content" | "payments" | "support" | "users">(
+  const [tab, setTab] = useState<"content" | "payments" | "support" | "users" | "vault">(
     "content"
   );
 
@@ -127,7 +128,7 @@ export default function AdminInner() {
       <Container className="py-12">
         <h1 className="text-3xl font-black tracking-tight">Admin</h1>
         <div className="mt-5 flex flex-wrap gap-2">
-          {(["content", "payments", "support", "users"] as const).map((t) => (
+           {(["content", "payments", "support", "users", "vault"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -144,6 +145,7 @@ export default function AdminInner() {
           {tab === "payments" && <PaymentsTab />}
           {tab === "support" && <SupportTab />}
           {tab === "users" && <UsersTab />}
+          {tab === "vault" && <VaultChatTab />}
         </div>
       </Container>
     </>

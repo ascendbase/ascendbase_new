@@ -263,6 +263,22 @@ export default async function LearnPost({
             </div>
           )}
 
+          <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
+            <p className="text-base font-semibold text-white/90">
+              Enjoying the free read?
+            </p>
+            <p className="mx-auto mt-1 max-w-md text-sm text-white/55">
+              Create a free account to save your progress and unlock the full
+              members vault — including the paid deep-dives.
+            </p>
+            <Link
+              href="/signup"
+              className="btn-red mt-4 inline-block rounded-full px-6 py-2.5 text-sm font-semibold"
+            >
+              Create free account
+            </Link>
+          </div>
+
           <div className="mt-10 text-center">
             <Link
               href="/glossary"

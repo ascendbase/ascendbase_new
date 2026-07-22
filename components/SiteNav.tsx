@@ -76,9 +76,6 @@ export default function SiteNav() {
               <Link href="/dashboard" className={`${linkCls("/dashboard")} whitespace-nowrap py-1`}>
                 Vault
               </Link>
-              <Link href="/learn" className={`${linkCls("/learn")} whitespace-nowrap py-1`}>
-                Learn
-              </Link>
               <Link href="/ratios" className={`${linkCls("/ratios")} whitespace-nowrap py-1`}>
                 Ratios
               </Link>
@@ -116,9 +113,6 @@ export default function SiteNav() {
             <>
               <Link href="/#benefits" className={`hidden sm:block ${linkCls("/")} py-1`}>
                 Benefits
-              </Link>
-              <Link href="/learn" className={`${linkCls("/learn")} whitespace-nowrap py-1`}>
-                Learn
               </Link>
                <Link href="/login" className={`${linkCls("/login")} whitespace-nowrap py-1`}>
                   Log in

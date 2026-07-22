@@ -109,8 +109,8 @@ export default function GlossaryPage() {
       <SiteNav />
       <main>
         <Container className="max-w-3xl py-12">
-          <Link href="/learn" className="text-sm text-white/50 hover:text-white">
-            ← All free reads
+          <Link href="/dashboard" className="text-sm text-white/50 hover:text-white">
+            ← Back to the vault
           </Link>
           <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
             Glossary of facial and looksmaxing terms

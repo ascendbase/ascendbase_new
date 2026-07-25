@@ -27,7 +27,7 @@ export const FREE_PLAN = {
 export const PLANS: Plan[] = [
   {
     key: "vault",
-    name: "Full Vault Access",
+    name: "Unlock full vault",
     price: 19,
     salePrice: 9,
     days: 30,

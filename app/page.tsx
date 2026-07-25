@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard, PrimaryButton, GhostButton, Badge } from "@/components/ui";
 import Link from "next/link";
-import { PLANS, FREE_PLAN } from "@/lib/plans";
+import { PLANS, FREE_PLAN, getPlan } from "@/lib/plans";
 
 const benefits = [
   {
@@ -59,7 +59,12 @@ function ctaFor(key: string | null): { label: string; href: string } {
 function TierCard({ p, planKey }: { p: typeof PLANS[number]; planKey: string | null }) {
   const [open, setOpen] = useState(false);
   const visible = open ? p.features : p.features.slice(0, 3);
-  const cta = ctaFor(planKey);
+  // The card's own CTA: free / logged-out users "Unlock", everyone else
+  // upgrades straight to THIS plan (the list is already filtered to tiers
+  // higher than their current one).
+  const cta = planKey
+    ? { label: "Upgrade", href: `/checkout?upgrade=${p.key}` }
+    : { label: "Unlock", href: "/checkout" };
   return (
     <GlassCard className="flex h-full flex-col">
       <div className="text-sm font-semibold text-white/80">{p.name}</div>
@@ -134,6 +139,13 @@ export default function Home() {
         setChecked(true);
       });
   }, []);
+
+  // Plans the user can still upgrade to: only those priced higher than
+  // their active plan. Free / logged-out users see every paid tier.
+  const currentPlan = planKey ? getPlan(planKey) : null;
+  const currentPrice = currentPlan?.price ?? 0;
+  const upgradeablePlans = PLANS.filter((p) => p.price > currentPrice);
+  const isMaxedOut = !!currentPlan && upgradeablePlans.length === 0;
 
   return (
     <>
@@ -299,32 +311,58 @@ export default function Home() {
             </div>
 
             <div className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* FREE TIER — first, clear */}
-              <GlassCard className="flex h-full flex-col border-green/30">
-                <div className="text-sm font-semibold text-green-glow">
-                  {FREE_PLAN.name}
-                </div>
-                <div className="mt-3 text-3xl font-black">$0</div>
-                <p className="mt-1 text-xs text-white/45">forever · no card</p>
-                <ul className="mt-4 space-y-2 text-sm text-white/60">
-                  <li>✓ Free vault posts</li>
-                  <li>✓ Core theory & breakdowns</li>
-                  <li>✓ Browse on demand</li>
-                  <li>✓ Free automatic ratios calculator</li>
-                </ul>
-                <div className="mt-auto pt-5">
-                  <Link href="/signup">
-                    <PrimaryButton tone="green" className="w-full py-2.5 text-sm">
-                      {FREE_PLAN.cta}
-                    </PrimaryButton>
-                  </Link>
-                </div>
-              </GlassCard>
+              {/* FREE TIER — only shown to free / logged-out visitors.
+                  Paid users instead see only the tiers above their plan. */}
+              {!currentPlan && (
+                <GlassCard className="flex h-full flex-col border-green/30">
+                  <div className="text-sm font-semibold text-green-glow">
+                    {FREE_PLAN.name}
+                  </div>
+                  <div className="mt-3 text-3xl font-black">$0</div>
+                  <p className="mt-1 text-xs text-white/45">forever · no card</p>
+                  <ul className="mt-4 space-y-2 text-sm text-white/60">
+                    <li>✓ Free vault posts</li>
+                    <li>✓ Core theory & breakdowns</li>
+                    <li>✓ Browse on demand</li>
+                    <li>✓ Free automatic ratios calculator</li>
+                  </ul>
+                  <div className="mt-auto pt-5">
+                    <Link href="/signup">
+                      <PrimaryButton tone="green" className="w-full py-2.5 text-sm">
+                        {FREE_PLAN.cta}
+                      </PrimaryButton>
+                    </Link>
+                  </div>
+                </GlassCard>
+              )}
 
-              {/* PAID TIERS */}
-              {PLANS.map((p) => (
-                <TierCard key={p.key} p={p} planKey={planKey} />
-              ))}
+              {/* PAID TIERS — filtered to only those above the user's plan */}
+              {isMaxedOut ? (
+                <GlassCard className="flex h-full flex-col items-center justify-center text-center border-red/30 sm:col-span-2 lg:col-span-3">
+                  <div className="text-sm font-semibold text-red-glow">
+                    Maxed out
+                  </div>
+                  <h3 className="mt-3 text-2xl font-black tracking-tight">
+                    You have every benefit
+                  </h3>
+                  <p className="mt-2 max-w-md text-sm text-white/60">
+                    Your current plan already includes all the vault and personal
+                    help tiers. There's nothing higher to upgrade to — enjoy full
+                    access to everything.
+                  </p>
+                  <div className="mt-auto pt-5">
+                    <Link href="/dashboard">
+                      <PrimaryButton tone="green" className="px-8 py-2.5 text-sm">
+                        Open the vault →
+                      </PrimaryButton>
+                    </Link>
+                  </div>
+                </GlassCard>
+              ) : (
+                upgradeablePlans.map((p) => (
+                  <TierCard key={p.key} p={p} planKey={planKey} />
+                ))
+              )}
             </div>
 
             <p className="mx-auto mt-8 max-w-xl text-center text-sm text-white/45">

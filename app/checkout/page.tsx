@@ -211,8 +211,8 @@ export default function CheckoutPage() {
             {upgradeFrom
               ? "Upgrade your plan"
               : selPlan === "free"
-              ? "Unlock the vault"
-              : (getPlan(selPlan)?.name || "Unlock the vault")}
+              ? "Looksmaxing plans"
+              : (getPlan(selPlan)?.name || "Looksmaxing plans")}
           </h1>
         </div>
 

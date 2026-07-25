@@ -28,6 +28,20 @@ export default function SiteNav() {
   // "Personal" line is only for the 49 (advice) and 99 (coaching) tiers.
   const isPersonal = planKey === "advice" || planKey === "coaching";
 
+  // The "ascend" CTA targets checkout, mirroring the homepage CTA logic:
+  //  - no paid plan (free / logged-out) -> /checkout
+  //  - 19 (vault) or 49 (advice) -> /checkout?upgrade=<key> (pay diff)
+  //  - 99 (coaching, top tier) -> nothing higher, go straight to vault
+  const ascendHref =
+    planKey === "vault"
+      ? "/checkout?upgrade=vault"
+      : planKey === "advice"
+      ? "/checkout?upgrade=advice"
+      : planKey === "coaching"
+      ? "/dashboard"
+      : "/checkout";
+  const showAscend = !(planKey === "coaching");
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
@@ -100,6 +114,15 @@ export default function SiteNav() {
               {user.role === "admin" && (
                 <Link href="/admin" className={`${linkCls("/admin")} whitespace-nowrap py-1`}>
                   Admin
+                </Link>
+              )}
+              <span className="hidden h-5 w-px self-center bg-white/15 sm:inline-block" aria-hidden="true" />
+              {showAscend && (
+                <Link
+                  href={ascendHref}
+                  className="btn-ascend shrink-0 whitespace-nowrap text-[13px] sm:text-[14px]"
+                >
+                  ASCEND
                 </Link>
               )}
               <button

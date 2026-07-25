@@ -76,27 +76,27 @@ export default function ConnectPage() {
           breakdowns, and follow the author.
         </p>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-8 grid gap-3">
           {LINKS.map((l) => (
             <a
               key={l.href}
               href={l.href}
               target="_blank"
               rel="me noreferrer"
-              className="group block rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-red/40 hover:bg-white/[0.06]"
+              className="group flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition hover:border-red/40 hover:bg-white/[0.06]"
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
                 <span className="text-lg font-bold text-white/90 group-hover:text-red-glow">
                   {l.label}
                 </span>
-                <span className="text-white/30 transition group-hover:text-red-glow">
-                  ↗
-                </span>
+                <p className="mt-1 text-sm text-white/50">{l.desc}</p>
+                <p className="mt-3 text-[11px] font-mono text-white/35">
+                  {l.handle}
+                </p>
               </div>
-              <p className="mt-1 text-sm text-white/50">{l.desc}</p>
-              <p className="mt-3 text-[11px] font-mono text-white/35">
-                {l.handle}
-              </p>
+              <span className="shrink-0 text-white/30 transition group-hover:text-red-glow">
+                ↗
+              </span>
             </a>
           ))}
         </div>

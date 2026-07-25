@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import {
@@ -93,6 +93,53 @@ function planLabel(
 
 function uid() {
   return crypto.randomUUID();
+}
+
+// Auto-growing textarea: sets its height to the scrollHeight on every
+// input so long blocks expand to fit (no inner scrollbar, no cramped box).
+// Uses a plain <textarea> (not the shared .field) so we avoid the fixed
+// min-height and the heavy blur/transition that made editing feel laggy.
+function AutoTextarea({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const resize = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  };
+  useEffect(resize, [value]);
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => {
+        onChange(e.target.value);
+        resize();
+      }}
+      className="block w-full rounded-xl border border-white/10 bg-black/40 p-3 text-sm leading-relaxed text-white/90 outline-none transition focus:border-red/50"
+      style={{ minHeight: 90, resize: "none", overflow: "hidden" }}
+    />
+  );
+}
+
+// Parse stored blocks (string or array) into a plain array.
+function parseBlocks(raw: any): any[] {
+  const str = typeof raw === "string" ? raw : JSON.stringify(raw || []);
+  try {
+    const arr = JSON.parse(str || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
 }
 
 export default function AdminInner() {
@@ -368,6 +415,22 @@ function ContentTab() {
       return copy;
     });
   }
+  // Move a block to a specific 1-based position. The block is removed from
+  // its current spot and inserted at the target index; everything at and
+  // after the target shifts forward by one (so the previous occupant of
+  // that position — and the ones after it — move down/forward).
+  function moveBlockTo(id: string, pos: number) {
+    setBlocks((b) => {
+      const i = b.findIndex((x) => x.id === id);
+      if (i < 0) return b;
+      const target = Math.max(1, Math.min(b.length, pos)) - 1;
+      if (target === i) return b;
+      const copy = [...b];
+      const [item] = copy.splice(i, 1);
+      copy.splice(target, 0, item);
+      return copy;
+    });
+  }
   function togglePreview(id: string) {
     setBlocks((b) =>
       b.map((x) => (x.id === id ? { ...x, preview: !x.preview } : x))
@@ -499,8 +562,110 @@ function ContentTab() {
   }
   const rows = treeRows(null, 0);
 
+  // Memoized list of content items. Wrapped in React.memo so that typing
+  // in the editor (which only changes `blocks`/form state) does NOT
+  // re-render this whole list on every keystroke — that was a major
+  // source of the lag. The callbacks are stable via useCallback.
+  const ItemList = memo(function ItemList({
+    rows,
+    folders,
+    onEdit,
+    onDelete,
+    onMove,
+  }: {
+    rows: ContentItem[];
+    folders: ContentItem[];
+    onEdit: (it: ContentItem) => void;
+    onDelete: (id: number) => void;
+    onMove: (id: number, dir: -1 | 1) => void;
+  }) {
+    return (
+      <>
+        {rows.map((it) => {
+          const depth = (it as any)._depth || 0;
+          const isFolder = (it.kind || "post") === "folder";
+          const arr = parseBlocks(it.blocks);
+          const firstImg =
+            arr.find((b: any) => b.type === "image")?.url || it.image_data;
+          return (
+    <div
+      key={it.id}
+      className="rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+      style={{ marginLeft: depth * 12 }}
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 text-base">{isFolder ? "📁" : "📄"}</span>
+        {firstImg && !isFolder ? (
+          <img
+            src={firstImg}
+            alt=""
+            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+          />
+        ) : (
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white/5 text-white/30">
+            {isFolder ? "▦" : "∅"}
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-bold">{it.title}</span>
+            {!isFolder && (it.access || "free") !== "free" && (
+              <Badge tone={(it.access as string) === "paid" ? "red" : "white"}>
+                {(it.access as string) === "paid" ? "paid" : "preview"}
+              </Badge>
+            )}
+            <Badge tone={it.published ? "green" : "white"}>
+              {it.published ? "live" : "draft"}
+            </Badge>
+          </div>
+          <p className="truncate text-xs text-white/45">
+            {isFolder ? "folder" : `/${it.slug}`}
+          </p>
+        </div>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-1 pl-9">
+        <button
+          className="rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10"
+          onClick={() => onMove(it.id, -1)}
+          title="Move up"
+        >
+          ↑
+        </button>
+        <button
+          className="rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10"
+          onClick={() => onMove(it.id, 1)}
+          title="Move down"
+        >
+          ↓
+        </button>
+        <GhostButton className="px-3 py-1.5 text-sm" onClick={() => onEdit(it)}>
+          Edit
+        </GhostButton>
+        <GhostButton
+          className="px-3 py-1.5 text-sm"
+          onClick={() => onDelete(it.id)}
+        >
+          Delete
+        </GhostButton>
+      </div>
+    </div>
+          );
+        })}
+        {rows.length === 0 && (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-center text-sm text-white/50">
+            No content yet. Create your first item on the right.
+          </div>
+        )}
+      </>
+    );
+  });
+
+  const handleEdit = useCallback((it: ContentItem) => edit(it), []);
+  const handleDelete = useCallback((id: number) => del(id), []);
+  const handleMove = useCallback((id: number, dir: -1 | 1) => moveItem(id, dir), []);
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_390px]">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.3fr)]">
       <div className="space-y-3">
         <GlassCard className="border-green/30">
           <button
@@ -581,82 +746,16 @@ function ContentTab() {
           )}
           {aiMsg && <p className="mt-2 text-sm text-green-glow">{aiMsg}</p>}
         </GlassCard>
-        {rows.map((it) => {
-          const depth = (it as any)._depth || 0;
-          const isFolder = (it.kind || "post") === "folder";
-          const arr = parseBlocks(it.blocks);
-          const firstImg =
-            arr.find((b: any) => b.type === "image")?.url || it.image_data;
-          return (
-            <GlassCard
-              key={it.id}
-              className="flex items-center gap-4"
-              style={{ marginLeft: depth * 16 }}
-            >
-              <span className="text-lg">{isFolder ? "📁" : "📄"}</span>
-              {firstImg && !isFolder ? (
-                <img
-                  src={firstImg}
-                  alt=""
-                  className="h-16 w-16 rounded-xl object-cover"
-                />
-              ) : (
-                <div className="grid h-16 w-16 place-items-center rounded-xl bg-white/5 text-white/30">
-                  {isFolder ? "▦" : "∅"}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate font-bold">{it.title}</span>
-                  {!isFolder && (it.access || "free") !== "free" && (
-                    <Badge tone={(it.access as string) === "paid" ? "red" : "white"}>
-                      {(it.access as string) === "paid" ? "paid" : "preview"}
-                    </Badge>
-                  )}
-                  <Badge tone={it.published ? "green" : "white"}>
-                    {it.published ? "live" : "draft"}
-                  </Badge>
-                </div>
-                <p className="truncate text-sm text-white/45">
-                  {isFolder ? "folder" : `/${it.slug}`}
-                </p>
-              </div>
-              <div className="flex gap-1">
-                <button
-                  className="rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10"
-                  onClick={() => moveItem(it.id, -1)}
-                  title="Move up"
-                >
-                  ↑
-                </button>
-                <button
-                  className="rounded-md px-2 py-1 text-xs text-white/60 hover:bg-white/10"
-                  onClick={() => moveItem(it.id, 1)}
-                  title="Move down"
-                >
-                  ↓
-                </button>
-              </div>
-              <GhostButton className="px-4 py-2 text-sm" onClick={() => edit(it)}>
-                Edit
-              </GhostButton>
-              <GhostButton
-                className="px-4 py-2 text-sm"
-                onClick={() => del(it.id)}
-              >
-                Delete
-              </GhostButton>
-            </GlassCard>
-          );
-        })}
-        {items.length === 0 && (
-          <GlassCard className="text-center text-white/50">
-            No content yet. Create your first item on the right.
-          </GlassCard>
-        )}
+        <ItemList
+          rows={rows}
+          folders={folders}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onMove={handleMove}
+        />
       </div>
 
-      <GlassCard className="h-fit lg:sticky lg:top-24">
+      <div className="h-fit rounded-3xl border border-white/10 bg-[#0c0c0e] p-6 sm:p-8">
         <h3 className="text-lg font-bold">
           {editing ? "Edit item" : "New item"}
         </h3>
@@ -786,11 +885,29 @@ function ContentTab() {
                   key={b.id}
                   className="rounded-2xl border border-white/10 bg-white/[0.03] p-3"
                 >
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-white/50">
                       {b.type === "image" ? "Image" : "Text"} #{i + 1}
                     </span>
-                    <div className="flex gap-1">
+                    <div className="flex flex-wrap items-center gap-1">
+                      <label
+                        className="flex items-center gap-1 text-[11px] text-white/45"
+                        title="Move this block to a specific position (1 = top). Blocks after it shift down."
+                      >
+                        to #
+                        <input
+                          type="number"
+                          min={1}
+                          max={blocks.length}
+                          defaultValue={i + 1}
+                          onBlur={(e) => {
+                            const v = Number(e.target.value);
+                            if (v >= 1 && v <= blocks.length) moveBlockTo(b.id, v);
+                            else e.target.value = String(i + 1);
+                          }}
+                          className="field !w-14 !py-1 text-center text-xs"
+                        />
+                      </label>
                       <button
                         className={`rounded-md px-2 py-1 text-xs ${
                           b.preview
@@ -823,13 +940,13 @@ function ContentTab() {
                     </div>
                   </div>
                   {b.type === "text" ? (
-                    <TextArea
+                    <AutoTextarea
                       value={b.text}
-                      onChange={(e) =>
+                      onChange={(v) =>
                         setBlocks((bs) =>
                           bs.map((x) =>
                             x.id === b.id && x.type === "text"
-                              ? { ...x, text: e.target.value }
+                              ? { ...x, text: v }
                               : x
                           )
                         )
@@ -914,7 +1031,7 @@ function ContentTab() {
             {editing && <GhostButton onClick={resetForm}>Cancel</GhostButton>}
           </div>
         </div>
-      </GlassCard>
+      </div>
     </div>
   );
 }

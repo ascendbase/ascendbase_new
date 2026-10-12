@@ -126,9 +126,33 @@ export async function createInvoice(opts: {
 
   const chosen =
     nets.find((n) => n.coin === opts.coin && n.net === opts.net) || nets[0];
-  return {
+
+  // AUTO-VERIFICATION (USDT TRC20 only): tag the amount with unique random
+  // cents (e.g. 19 → 19.47 USDT). The exact value acts as a payment reference
+  // on-chain, so incoming transfers can be matched to this specific order and
+  // access can be granted automatically — no manual admin verification, no
+  // waiting hours for the owner to check the wallet.
+  let amount = opts.amount;
+  if (chosen.coin === "USDT" && chosen.net === "TRC20") {
+    const open = await db.execute({
+      sql: "SELECT amount FROM invoices WHERE status = 'open' AND coin = 'USDT' AND net = 'TRC20'",
+      args: [],
+    });
+    const taken = new Set(
+      open.rows.map((r) => Number((r as unknown as { amount: number }).amount).toFixed(2))
+    );
+    for (let i = 0; i < 50; i++) {
+      const tagged = Math.round((opts.amount + 0.01 + Math.random() * 0.98) * 100) / 100;
+      if (!taken.has(tagged.toFixed(2))) {
+        amount = tagged;
+        break;
+      }
+    }
+  }
+
+  const invoice: Invoice = {
     orderId,
-    amount: opts.amount,
+    amount,
     coin: chosen.coin,
     net: chosen.net,
     address: chosen.address,
@@ -144,6 +168,24 @@ export async function createInvoice(opts: {
     status: "pending",
     planKey: opts.planKey,
   };
+
+  if (invoice.coin === "USDT" && invoice.net === "TRC20") {
+    // Persist the invoice so the automatic on-chain poller can match an
+    // incoming transfer (by exact tagged amount) to this order later.
+    await db.execute({
+      sql: "INSERT OR IGNORE INTO invoices (order_id, user_id, plan_key, amount, coin, net, address) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      args: [
+        invoice.orderId,
+        opts.userId,
+        opts.planKey || null,
+        invoice.amount,
+        invoice.coin,
+        invoice.net,
+        invoice.address,
+      ],
+    });
+  }
+  return invoice;
 }
 
 /**

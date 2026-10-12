@@ -188,6 +188,39 @@ export default function CheckoutPage() {
     };
   }, [state, paid, router]);
 
+  // AUTO-POLL: while a live (non-sandbox) invoice is on screen, ask the
+  // server to check the public blockchain for the member's exact tagged
+  // payment. When it lands, the pending subscription is created and confirmed
+  // server-side and `paid` flips to true — the existing poll above then
+  // redirects to the vault automatically. Zero manual admin verification.
+  useEffect(() => {
+    if (state !== "ready" || !invoice || invoice.sandbox || paid) return;
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = async () => {
+      try {
+        const r = await fetch("/api/checkout/poll", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ orderId: invoice.orderId }),
+        });
+        const d = await r.json().catch(() => null);
+        if (d?.found && alive) {
+          setPaid(true);
+          return; // stop scheduling; the subscription poll takes over
+        }
+      } catch {
+        /* network hiccup — try again on the next tick */
+      }
+      if (alive) timer = setTimeout(tick, 15000);
+    };
+    timer = setTimeout(tick, 8000);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [state, invoice, paid]);
+
   function copy(text: string) {
     navigator.clipboard?.writeText(text);
   }
@@ -223,9 +256,9 @@ export default function CheckoutPage() {
                 Payment awaiting verification ⏳
               </div>
               <p className="text-sm text-white/55">
-                We’ve received your payment notice. Access opens as soon as the
-                owner verifies the transfer in their wallet (usually within a few
-                hours). This page refreshes automatically once it’s confirmed.
+                Payment detected on-chain. Access opens as soon as the transfer
+                is confirmed (usually under a minute). This page refreshes
+                automatically once it’s confirmed.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-white/50">
                 <span className="spin inline-block h-4 w-4 rounded-full border-2 border-white/20 border-t-green-soft" />
@@ -349,9 +382,9 @@ export default function CheckoutPage() {
                   Payment marked as sent ✓
                 </div>
               <p className="text-sm text-white/55">
-                The owner will verify the transfer in their wallet and grant
-                access shortly. This page refreshes automatically once it’s
-                confirmed — no need to do anything else.
+                We’re now watching the blockchain for your transfer. As soon as
+                the exact amount arrives in the wallet, your access is granted
+                automatically — no waiting for a manual check.
               </p>
               <div className="flex items-center justify-center gap-2 text-sm text-white/50">
                 <span className="spin inline-block h-4 w-4 rounded-full border-2 border-white/20 border-t-green-soft" />

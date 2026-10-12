@@ -41,6 +41,20 @@ export async function initDb() {
     );
   `);
   await db.execute(`
+    CREATE TABLE IF NOT EXISTS invoices (
+      order_id TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      plan_key TEXT,
+      amount REAL NOT NULL,
+      coin TEXT NOT NULL,
+      net TEXT NOT NULL,
+      address TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'open',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      checked_at INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS content (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       slug TEXT UNIQUE,

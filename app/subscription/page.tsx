@@ -97,10 +97,10 @@ export default function SubscriptionPage() {
                 Payment awaiting verification ⏳
               </div>
               <p className="text-sm text-white/55">
-                We’ve received your payment notice. Access opens as soon as the
-                owner verifies the transfer in their wallet (usually within a few
-                hours). You’ll be able to open the vault automatically once it’s
-                confirmed.
+                Your transfer is being verified on the blockchain automatically.
+                Access opens as soon as it’s detected — usually within a few
+                minutes of the transaction confirming. This page refreshes by
+                itself once it’s confirmed.
               </p>
               {sub!.orderId && (
                 <div className="rounded-xl bg-white/5 p-3 text-left">

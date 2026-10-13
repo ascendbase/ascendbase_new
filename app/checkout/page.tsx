@@ -48,6 +48,10 @@ export default function CheckoutPage() {
   const [pendingRef, setPendingRef] = useState<string>("");
   const [txHash, setTxHash] = useState("");
   const [txError, setTxError] = useState("");
+  // Optional fallback: users paying on non-USDT networks (or whose browser
+  // closed during payment) can still submit their tx hash for manual
+  // verification. Hidden by default — USDT TRC20 verifies automatically.
+  const [showHash, setShowHash] = useState(false);
   // Upgrade mode: ?upgrade=<currentPlanKey> preselects the next tier
   // and only lets the user pay the difference (no downgrades).
   const [upgradeFrom, setUpgradeFrom] = useState<string | null>(null);
@@ -461,9 +465,9 @@ export default function CheckoutPage() {
                 </>
               ) : (
                 <>
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-white/70">
+                  <div className="rounded-2xl border border-green/30 bg-green/[0.06] p-4 text-sm text-white/70">
                     <div className="mb-2 font-semibold text-white">
-                      How to complete your payment (3 easy steps)
+                      How to complete your payment
                     </div>
                     <ol className="list-decimal space-y-2 pl-5">
                       <li>
@@ -471,29 +475,29 @@ export default function CheckoutPage() {
                         <b className="text-white">
                           {invoice.amount} {invoice.coin}
                         </b>{" "}
-                        to the wallet address shown above.
+                        to the wallet address shown above.{" "}
+                        <b className="text-white">
+                          The exact amount (including the last cents) is your
+                          personal payment code
+                        </b>{" "}
+                        — it tells the system which order the transfer belongs
+                        to, so pay it precisely as shown.
                       </li>
                       <li>
-                        In <b className="text-white">your own wallet app</b>, open
-                        this transfer and copy its{" "}
-                        <b className="text-white">Transaction hash (TX id)</b> —
-                        it looks like a long string of letters & numbers
-                        (e.g. <span className="font-mono text-white/60">0x…</span> or{" "}
-                        <span className="font-mono text-white/60">a1b2c3…</span>).
-                        This is your proof of payment.
+                        <b className="text-white">Keep this page open.</b> Your
+                        access is verified automatically on the blockchain —
+                        typically within a minute of the transfer confirming.
+                        Nothing else to click, no hash to paste.
                       </li>
                       <li>
-                        Paste that hash in the box below and click{" "}
-                        <b className="text-white">“I’ve sent the payment”</b>.
-                        We’ll unlock your access as soon as the owner
-                        verifies the transfer (usually within a few hours).
+                        The page will switch to the vault by itself once the
+                        payment is detected. You can safely leave it in the
+                        background; verification still runs server-side.
                       </li>
                     </ol>
-                    <p className="mt-3 text-xs text-white/45">
-                      Confused where the TX hash is? After sending, most wallets
-                      show it under "Transaction details" / "View on explorer".
-                      If you can't find it, just message us from the Support
-                      page and we'll help.
+                    <p className="mt-3 flex items-center gap-2 text-xs text-white/55">
+                      <span className="spin inline-block h-3.5 w-3.5 shrink-0 rounded-full border-2 border-white/20 border-t-green-soft" />
+                      Watching the blockchain for your transfer…
                     </p>
                     <p className="mt-3 rounded-xl border border-red/30 bg-red/10 p-3 text-xs text-red-glow">
                       ⚠ Send your {invoice.coin} <b className="text-white">only on the {invoice.net} network</b>.
@@ -502,53 +506,65 @@ export default function CheckoutPage() {
                       your funds may be lost.
                     </p>
                   </div>
-                  <div>
-                    <span className="text-sm text-white/60">
-                      Transaction hash (TX id) — paste it here
-                    </span>
-                    <Input
-                      value={txHash}
-                      onChange={(e) => setTxHash(e.target.value)}
-                      placeholder="0x… / Tron tx id"
-                      className="mt-1 field-green"
-                    />
-                  </div>
-                  {txError && (
-                    <p className="text-sm text-red-glow">{txError}</p>
+
+                  {/* Manual fallback — only for non-USDT payments or recovery
+                      cases where automatic verification can't run. */}
+                  {showHash ? (
+                    <div className="space-y-2">
+                      <span className="text-sm text-white/60">
+                        Fallback: paste your transaction hash (TX id)
+                      </span>
+                      <Input
+                        value={txHash}
+                        onChange={(e) => setTxHash(e.target.value)}
+                        placeholder="0x… / Tron tx id"
+                        className="field-green"
+                      />
+                      {txError && (
+                        <p className="text-sm text-red-glow">{txError}</p>
+                      )}
+                      <PrimaryButton
+                        tone="green"
+                        className="w-full"
+                        disabled={busy}
+                        onClick={async () => {
+                          if (!txHash.trim()) {
+                            setTxError("Enter the transaction hash to continue.");
+                            return;
+                          }
+                          setBusy(true);
+                          setTxError("");
+                          const r = await fetch("/api/checkout/confirm", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              orderId: invoice.orderId,
+                              txHash: txHash.trim(),
+                              amount: invoice.amount,
+                              planKey: selPlan,
+                              coin: invoice.coin,
+                              net: invoice.net,
+                            }),
+                          });
+                          setBusy(false);
+                          if (r.ok) setPaid(true);
+                          else {
+                            const d = await r.json().catch(() => ({}));
+                            setTxError(d.error || "Could not submit hash.");
+                          }
+                        }}
+                      >
+                        {busy ? "Submitting…" : "I’ve sent the payment"}
+                      </PrimaryButton>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowHash(true)}
+                      className="w-full text-center text-xs text-white/40 underline-offset-2 hover:text-white/70 hover:underline"
+                    >
+                      Paid already or stuck? Submit your transaction hash manually
+                    </button>
                   )}
-                  <PrimaryButton
-                    tone="green"
-                    className="w-full"
-                    disabled={busy}
-                    onClick={async () => {
-                      if (!txHash.trim()) {
-                        setTxError("Enter the transaction hash to continue.");
-                        return;
-                      }
-                      setBusy(true);
-                      setTxError("");
-                      const r = await fetch("/api/checkout/confirm", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          orderId: invoice.orderId,
-                          txHash: txHash.trim(),
-                          amount: invoice.amount,
-                          planKey: selPlan,
-                          coin: invoice.coin,
-                          net: invoice.net,
-                        }),
-                      });
-                      setBusy(false);
-                      if (r.ok) setPaid(true);
-                      else {
-                        const d = await r.json().catch(() => ({}));
-                        setTxError(d.error || "Could not submit hash.");
-                      }
-                    }}
-                  >
-                    {busy ? "Submitting…" : "I’ve sent the payment"}
-                  </PrimaryButton>
                 </>
               )}
 

@@ -55,3 +55,5 @@ vault_backup_*.json
 # dev server logs
 dev.log
 dev.err
+.vercel
+smoke.out.log

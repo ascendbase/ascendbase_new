@@ -664,9 +664,71 @@ function ContentTab() {
   const handleDelete = useCallback((id: number) => del(id), []);
   const handleMove = useCallback((id: number, dir: -1 | 1) => moveItem(id, dir), []);
 
+  // Vault stats: published posts split by access tier (free/preview/paid).
+  // Folders and drafts are counted separately so the tiers always sum to
+  // the real "sellable" post count. Target per roadmap: ~70% gated.
+  const posts = items.filter((i) => (i.kind || "post") === "post");
+  const live = posts.filter((i) => !!i.published);
+  const byAccess = {
+    free: live.filter((i) => (i.access || "free") === "free").length,
+    preview: live.filter((i) => i.access === "preview").length,
+    paid: live.filter((i) => i.access === "paid").length,
+  };
+  const total = live.length || 1;
+  const gated = byAccess.preview + byAccess.paid;
+  const gatedPct = Math.round((gated / total) * 100);
+  const folderCount = items.filter((i) => (i.kind || "post") === "folder").length;
+  const draftCount = posts.length - live.length;
+
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.3fr)]">
       <div className="space-y-3">
+        <GlassCard className="border-white/15">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-bold">Vault stats</span>
+            <span className="text-xs text-white/45">
+              {live.length} live posts · {folderCount} folders
+              {draftCount > 0 ? ` · ${draftCount} drafts` : ""}
+            </span>
+          </div>
+          <div className="mt-3 flex h-3 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full bg-white/35"
+              style={{ width: `${(byAccess.free / total) * 100}%` }}
+              title={`Free: ${byAccess.free}`}
+            />
+            <div
+              className="h-full bg-green-soft/70"
+              style={{ width: `${(byAccess.preview / total) * 100}%` }}
+              title={`Preview: ${byAccess.preview}`}
+            />
+            <div
+              className="h-full bg-green-glow"
+              style={{ width: `${(byAccess.paid / total) * 100}%` }}
+              title={`Paid: ${byAccess.paid}`}
+            />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            {(
+              [
+                { label: "Free", n: byAccess.free, cls: "text-white/70" },
+                { label: "Preview", n: byAccess.preview, cls: "text-green-soft" },
+                { label: "Paid", n: byAccess.paid, cls: "text-green-glow" },
+              ] as const
+            ).map((s) => (
+              <div key={s.label} className="rounded-xl bg-white/5 px-2 py-2">
+                <div className={`text-xl font-black ${s.cls}`}>{s.n}</div>
+                <div className="text-[11px] uppercase tracking-wide text-white/40">
+                  {s.label} · {Math.round((s.n / total) * 100)}%
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-white/45">
+            Gated (preview + paid): <b className={gatedPct >= 70 ? "text-green-glow" : "text-white/70"}>{gated}/{live.length} ({gatedPct}%)</b>
+            {gatedPct < 70 ? " — roadmap target is ~70% gated (P1.2)." : " — target reached."}
+          </p>
+        </GlassCard>
         <GlassCard className="border-green/30">
           <button
             onClick={() => setAiOpen((o) => !o)}

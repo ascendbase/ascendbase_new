@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  const { orderId, amount, planKey, coin, net, userId } = await req
+  const { orderId, amount, planKey, coin, net, userId, renewal } = await req
     .json()
     .catch(() => ({}));
   if (!orderId) {
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
       coin: coin || "USDT",
       net: net || "TRC20",
       txHash: "sandbox_simulated",
+      renewal: !!renewal,
     });
   }
   await confirmPayment(orderId);

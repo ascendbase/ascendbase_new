@@ -93,6 +93,10 @@ export async function initDb() {
   `);
   await migrateColumn("support_messages", "image_url", "TEXT");
 
+  // Renewal flag on invoices: when set, confirmPayment extends the member's
+  // existing expiry instead of starting a fresh 30-day window.
+  await migrateColumn("invoices", "renewal", "INTEGER NOT NULL DEFAULT 0");
+
   // Migrations for databases created before these columns existed.
   await migrateColumn("subscriptions", "network", "TEXT");
   await migrateColumn("subscriptions", "tx_hash", "TEXT");

@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
 
   // The invoice must belong to the authenticated user.
   const inv = await db.execute({
-    sql: "SELECT order_id, plan_key, status FROM invoices WHERE order_id = ? AND user_id = ?",
+    sql: "SELECT order_id, plan_key, status, renewal, amount FROM invoices WHERE order_id = ? AND user_id = ?",
     args: [orderId, user.id],
   });
   const row = inv.rows[0] as unknown as
-    | { order_id: string; plan_key: string | null; status: string }
+    | { order_id: string; plan_key: string | null; status: string; renewal: number; amount: number }
     | undefined;
   if (!row) return NextResponse.json({ found: false });
 
@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
     txHash: res.txHash,
     coin: "USDT",
     net: "TRC20",
-    amount: plan.price,
+    amount: Number(row.amount) || plan.price,
+    renewal: !!row.renewal,
   });
   // confirmPayment derives duration and expiry from the plan itself.
   await confirmPayment(orderId, { txHash: res.txHash, network: "TRC20" });

@@ -39,20 +39,32 @@ export async function GET() {
   // verification) or a free sub. Report it so the UI can show the
   // correct waiting / free state instead of bouncing to checkout.
   const any = await db.execute({
-    sql: "SELECT status, plan_key, order_id FROM subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
+    sql: "SELECT status, plan_key, order_id, expires_at FROM subscriptions WHERE user_id = ? ORDER BY created_at DESC LIMIT 1",
     args: [user.id],
   });
   const row = any.rows[0] as unknown as {
     status: string;
     plan_key: string | null;
     order_id: string;
+    expires_at: string | null;
   } | undefined;
   if (row) {
+    // An 'active' row whose expires_at has passed is EXPIRED — report it
+    // as such so the UI shows the renew banner instead of "Paid access".
+    let status = row.status;
+    let expiresAt: string | null = null;
+    if (status === "active" && row.expires_at) {
+      const exp = new Date(row.expires_at.replace(" ", "T") + "Z");
+      if (!isNaN(exp.getTime()) && exp.getTime() <= Date.now()) {
+        status = "expired";
+        expiresAt = row.expires_at;
+      }
+    }
     return NextResponse.json({
       user,
       subscription: {
-        status: row.status,
-        expiresAt: null,
+        status,
+        expiresAt,
         plan: null,
         planKey: row.plan_key,
         orderId: row.order_id,

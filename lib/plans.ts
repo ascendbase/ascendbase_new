@@ -89,6 +89,14 @@ export function getPlan(key?: string): Plan | undefined {
   return PLANS.find((p) => p.key === key);
 }
 
+/**
+ * Renewal pricing: existing vault members extend 30 days at a discount
+ * (15 vs 19). The renewal invoice uses plan_key "vault" (so every gating /
+ * display path keeps working) plus a renewal flag on the invoice row that
+ * makes confirmPayment EXTEND the existing expiry instead of starting fresh.
+ */
+export const RENEW_PRICE = 15;
+
 /** Plans actually offered at checkout (excludes paused/disabled ones). */
 export function activePlans(): Plan[] {
   return PLANS.filter((p) => !p.disabled);

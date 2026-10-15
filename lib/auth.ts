@@ -63,8 +63,11 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 }
 
 export async function getActiveSubscription(userId: number) {
+  // Order by the LATEST expiry, not creation time: after an early renewal
+  // the member has two 'active' rows (original + renewal) created in the
+  // same second — the extended expiry is the one that matters.
   const r = await db.execute({
-    sql: "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active' AND plan_key IS NOT NULL AND plan_key != 'free' ORDER BY created_at DESC LIMIT 1",
+    sql: "SELECT * FROM subscriptions WHERE user_id = ? AND status = 'active' AND plan_key IS NOT NULL AND plan_key != 'free' ORDER BY expires_at DESC LIMIT 1",
     args: [userId],
   });
   const row = r.rows[0] as unknown as { expires_at: string | null } | undefined;

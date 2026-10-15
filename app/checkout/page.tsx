@@ -55,6 +55,9 @@ export default function CheckoutPage() {
   // Upgrade mode: ?upgrade=<currentPlanKey> preselects the next tier
   // and only lets the user pay the difference (no downgrades).
   const [upgradeFrom, setUpgradeFrom] = useState<string | null>(null);
+  // Renewal mode: ?renew=1 — discounted 30-day extension for existing
+  // vault members. Extends the current expiry, never restarts it.
+  const [renewMode, setRenewMode] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -67,11 +70,18 @@ export default function CheckoutPage() {
       }
       // An UPGRADE user is already active — but they're arriving via
       // /checkout?upgrade=... to pay the difference, so DON'T bounce
-      // them to the vault. Only redirect active users who aren't upgrading.
-      const upParam = new URLSearchParams(window.location.search).get("upgrade");
-      if (me.subscription && me.subscription.status === "active" && !upParam) {
+      // them to the vault. Same for renewals (active members extending).
+      // Only redirect active users who aren't upgrading/renewing.
+      const params = new URLSearchParams(window.location.search);
+      const upParam = params.get("upgrade");
+      const renewParam = params.get("renew") === "1";
+      if (me.subscription && me.subscription.status === "active" && !upParam && !renewParam) {
         router.replace("/dashboard");
         return;
+      }
+      if (renewParam) {
+        setRenewMode(true);
+        setSelPlan("vault");
       }
       // Awaiting your verification — show the waiting screen, not the
       // plan picker, so a refresh doesn't look like nothing happened.
@@ -81,8 +91,8 @@ export default function CheckoutPage() {
         return;
       }
       // Upgrade flow: preselect the lowest tier above the current one.
-      const up = new URLSearchParams(window.location.search).get("upgrade");
-      if (up) {
+      const up = upParam;
+      if (up && !renewParam) {
         const cur = getPlan(up);
         const higher = PLANS.filter((p) => (cur ? p.price > cur.price : true));
         if (higher.length) {
@@ -103,6 +113,7 @@ export default function CheckoutPage() {
       body: JSON.stringify({
         planKey: selPlan,
         upgradeFrom: upgradeFrom || undefined,
+        renew: renewMode || undefined,
       }),
     });
     const data = await r.json();
@@ -154,6 +165,7 @@ export default function CheckoutPage() {
         coin: invoice.coin,
         net: invoice.net,
         userId: me?.user?.id,
+        renewal: renewMode,
       }),
     });
     setBusy(false);
@@ -245,7 +257,9 @@ export default function CheckoutPage() {
       <Container className="max-w-lg py-16">
           <div className="mb-8 text-center">
           <h1 className="mt-4 text-3xl font-black tracking-tight">
-            {upgradeFrom
+            {renewMode
+              ? "Renew your access"
+              : upgradeFrom
               ? "Upgrade your plan"
               : selPlan === "free"
               ? "Looksmaxing plans"
@@ -276,6 +290,34 @@ export default function CheckoutPage() {
                   <GhostButton className="w-full">Message support</GhostButton>
                 </Link>
               </div>
+            </div>
+          ) : !invoice && renewMode ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <Badge tone="green">Renewal — member price</Badge>
+              </div>
+              <div className="rounded-2xl border border-green/30 bg-green/[0.07] p-4 text-center">
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-3xl font-black text-green-glow">15 USDT</span>
+                  <span className="text-base font-medium text-white/35 line-through">19 USDT</span>
+                </div>
+                <p className="mt-2 text-sm text-white/60">
+                  Extend your full vault access by 30 days — at the discounted
+                  renewal price. Every day you still have left is kept: the new
+                  30 days are added on top of your current expiry.
+                </p>
+              </div>
+              <PrimaryButton
+                tone="green"
+                className="w-full"
+                onClick={generate}
+                disabled={busy}
+              >
+                {busy ? "Generating…" : "Renew for 15 USDT →"}
+              </PrimaryButton>
+              <Link href="/dashboard" className="block">
+                <GhostButton className="w-full">Back to the vault</GhostButton>
+              </Link>
             </div>
           ) : !invoice ? (
               <div className="space-y-5">

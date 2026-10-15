@@ -81,6 +81,7 @@ export type Invoice = {
   sandbox: boolean;
   status: string;
   planKey?: string;
+  renewal?: boolean;
 };
 
 const B58 = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -100,6 +101,7 @@ export async function createInvoice(opts: {
   coin?: string;
   net?: string;
   upgradeFrom?: string;
+  renewal?: boolean;
 }): Promise<Invoice> {
   const orderId =
     "ab_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
@@ -167,13 +169,14 @@ export async function createInvoice(opts: {
     sandbox: false,
     status: "pending",
     planKey: opts.planKey,
+    renewal: !!opts.renewal,
   };
 
   if (invoice.coin === "USDT" && invoice.net === "TRC20") {
     // Persist the invoice so the automatic on-chain poller can match an
     // incoming transfer (by exact tagged amount) to this order later.
     await db.execute({
-      sql: "INSERT OR IGNORE INTO invoices (order_id, user_id, plan_key, amount, coin, net, address) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      sql: "INSERT OR IGNORE INTO invoices (order_id, user_id, plan_key, amount, coin, net, address, renewal) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       args: [
         invoice.orderId,
         opts.userId,
@@ -182,6 +185,7 @@ export async function createInvoice(opts: {
         invoice.coin,
         invoice.net,
         invoice.address,
+        opts.renewal ? 1 : 0,
       ],
     });
   }
@@ -201,8 +205,13 @@ export async function createPendingSubscription(opts: {
   coin: string;
   net: string;
   txHash?: string;
+  renewal?: boolean;
 }): Promise<void> {
-  const plan = opts.planKey || (process.env.ACCESS_DAYS || "30") + "d";
+  // Legacy `plan` column doubles as the renewal marker: confirmPayment
+  // extends (rather than restarts) the expiry for rows marked 'renewal'.
+  const plan = opts.renewal
+    ? "renewal"
+    : opts.planKey || (process.env.ACCESS_DAYS || "30") + "d";
   await db.execute({
     sql: "INSERT INTO subscriptions (user_id, status, plan, amount, coin, network, plan_key, order_id, tx_hash) VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?)",
     args: [
@@ -218,33 +227,54 @@ export async function createPendingSubscription(opts: {
   });
 }
 
-/** Grant access. Used by the admin verify action and (later) by webhooks. */
+/** Grant access. Used by the admin verify action, the auto-poller, and webhooks. */
 export async function confirmPayment(
   orderId: string,
   extra?: { txHash?: string; network?: string }
 ) {
   // Duration comes from the plan the user actually bought.
   const sub = await db.execute({
-    sql: "SELECT plan_key FROM subscriptions WHERE order_id = ?",
+    sql: "SELECT plan_key, plan, user_id FROM subscriptions WHERE order_id = ?",
     args: [orderId],
   });
-  const row = sub.rows[0] as unknown as { plan_key: string | null };
+  const row = sub.rows[0] as unknown as {
+    plan_key: string | null;
+    plan: string | null;
+    user_id: number;
+  } | undefined;
   const plan = getPlan(row?.plan_key || undefined);
   const days = plan ? plan.days : parseInt(process.env.ACCESS_DAYS || "30", 10);
+
+  // Renewals extend the member's EXISTING window: base the new expiry on
+  // their latest active subscription's expires_at (so renewing early never
+  // costs them days). Fresh purchases start from now, as before.
+  let baseMs = Date.now();
+  if (row?.plan === "renewal" && row.user_id) {
+    const cur = await db.execute({
+      sql: "SELECT expires_at FROM subscriptions WHERE user_id = ? AND status = 'active' AND order_id != ? ORDER BY expires_at DESC LIMIT 1",
+      args: [row.user_id, orderId],
+    });
+    const curRow = cur.rows[0] as unknown as { expires_at: string | null } | undefined;
+    if (curRow?.expires_at) {
+      const curMs = new Date(curRow.expires_at.replace(" ", "T") + "Z").getTime();
+      if (!isNaN(curMs) && curMs > baseMs) baseMs = curMs;
+    }
+  }
   // SQLite datetime format (YYYY-MM-DD HH:MM:SS) so the
   // `expires_at > datetime('now')` check in getActiveSubscription works.
-  const expires = new Date(Date.now() + days * 86400000)
+  const expires = new Date(baseMs + days * 86400000)
     .toISOString()
     .replace("T", " ")
     .slice(0, 19);
   // On an upgrade, cancel the user's previous active sub so only the
-  // new (higher) tier stays active.
+  // new (higher) tier stays active. Renewals keep the existing sub —
+  // the new window is appended to it, never replaces it.
   const target = await db.execute({
     sql: "SELECT user_id FROM subscriptions WHERE order_id = ?",
     args: [orderId],
   });
   const trow = target.rows[0] as unknown as { user_id: number } | undefined;
-  if (trow) {
+  if (trow && row?.plan !== "renewal") {
     await db.execute({
       sql: "UPDATE subscriptions SET status='cancelled' WHERE user_id = ? AND status = 'active' AND order_id != ?",
       args: [trow.user_id, orderId],

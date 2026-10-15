@@ -67,6 +67,9 @@ export default function DashboardPage() {
   const [accessUntil, setAccessUntil] = useState<string | null>(null);
   const [isPaid, setIsPaid] = useState(false);
   const [err, setErr] = useState("");
+  // Renewal nudge state: days remaining on the current paid window, or
+  // "expired" when the member's access has lapsed (renew banner shows).
+  const [renewDays, setRenewDays] = useState<number | "expired" | null>(null);
 
   // openFolders: set of folder ids the user expanded.
   const [openFolders, setOpenFolders] = useState<Set<number>>(new Set());
@@ -87,6 +90,18 @@ export default function DashboardPage() {
       const paid =
         me.user.role === "admin" ||
         (me.subscription && me.subscription.status === "active");
+      // Renewal banner: show for paid members within 7 days of expiry and
+      // for expired members (me reports status 'expired' for those).
+      const expStr = me.subscription?.expiresAt || null;
+      if (me.subscription?.status === "expired") {
+        setRenewDays("expired");
+      } else if (expStr) {
+        const expMs = new Date(expStr.replace(" ", "T") + "Z").getTime();
+        if (!isNaN(expMs)) {
+          const daysLeft = Math.ceil((expMs - Date.now()) / 86400000);
+          setRenewDays(daysLeft <= 7 ? Math.max(0, daysLeft) : null);
+        }
+      }
       // Free users (no active sub) stay on the vault — freemium model.
       if (!paid && me.user.role !== "admin") {
         setIsPaid(false);
@@ -324,6 +339,46 @@ export default function DashboardPage() {
         </div>
 
         {err && <p className="mb-4 text-red-glow">{err}</p>}
+
+        {renewDays === "expired" && !isPaid && (
+          <GlassCard className="mb-4 border-red/40 bg-red/[0.06]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold text-red-glow">
+                  Your access has expired
+                </div>
+                <p className="mt-1 text-sm text-white/60">
+                  Renew in 1 click — extend 30 days for 15 USDT instead of 19.
+                </p>
+              </div>
+              <Link href="/checkout?renew=1">
+                <PrimaryButton tone="green" className="px-5 py-2 text-sm">
+                  Renew for 15 USDT →
+                </PrimaryButton>
+              </Link>
+            </div>
+          </GlassCard>
+        )}
+        {typeof renewDays === "number" && isPaid && (
+          <GlassCard className="mb-4 border-green/30 bg-green/[0.06]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold text-green-glow">
+                  Access ends in {renewDays === 0 ? "less than a day" : `${renewDays} day${renewDays === 1 ? "" : "s"}`}
+                </div>
+                <p className="mt-1 text-sm text-white/60">
+                  Renew early and save: extend 30 days for 15 USDT instead of 19.
+                  Your remaining days are kept.
+                </p>
+              </div>
+              <Link href="/checkout?renew=1">
+                <PrimaryButton className="px-5 py-2 text-sm">
+                  Renew early — 15 USDT →
+                </PrimaryButton>
+              </Link>
+            </div>
+          </GlassCard>
+        )}
 
         <GlassCard className="p-3">
           {nodes.length === 0 ? (

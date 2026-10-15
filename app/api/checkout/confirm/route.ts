@@ -31,6 +31,17 @@ export async function POST(req: NextRequest) {
 
   const clean = String(txHash).trim();
 
+  // Renewal marker: if this order was created as a renewal (discounted
+  // extension), the pending sub must carry the renewal flag so
+  // confirmPayment extends the existing expiry instead of restarting it.
+  let renewal = false;
+  const inv = await db.execute({
+    sql: "SELECT renewal FROM invoices WHERE order_id = ? AND user_id = ?",
+    args: [orderId, user.id],
+  });
+  const invRow = inv.rows[0] as unknown as { renewal: number } | undefined;
+  renewal = !!invRow?.renewal;
+
   // Guard: don't create a duplicate pending sub for the same order.
   const existing = await db.execute({
     sql: "SELECT id FROM subscriptions WHERE order_id = ? AND user_id = ?",
@@ -45,6 +56,7 @@ export async function POST(req: NextRequest) {
       coin: coin || "USDT",
       net: net || "TRC20",
       txHash: clean,
+      renewal,
     });
   } else {
     // Already exists (e.g. re-submit) — just refresh the hash.

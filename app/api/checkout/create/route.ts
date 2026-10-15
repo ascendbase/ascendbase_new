@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, initDb } from "@/lib/db";
 import { getCurrentUser, getActiveSubscription } from "@/lib/auth";
 import { createInvoice } from "@/lib/payments";
-import { getPlan, PLANS } from "@/lib/plans";
+import { getPlan, PLANS, RENEW_PRICE } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -17,7 +17,44 @@ export async function POST(req: NextRequest) {
     net?: string;
     planKey?: string;
     upgradeFrom?: string;
+    renew?: boolean;
   };
+
+  // RENEWAL: existing/past vault members extend 30 days at the discounted
+  // renewal price. Guard: never offered to active advice/coaching members
+  // (renewing at the vault price would silently downgrade them), and the
+  // member must have actually held a paid plan before.
+  if (body.renew) {
+    const active = await getActiveSubscription(user.id) as unknown as
+      | { plan_key?: string | null; expires_at?: string | null }
+      | null;
+    if (active && active.plan_key !== "vault") {
+      return NextResponse.json(
+        { error: "Renewal pricing is only for the vault tier. Use the upgrade flow instead." },
+        { status: 400 }
+      );
+    }
+    const history = await db.execute({
+      sql: "SELECT id FROM subscriptions WHERE user_id = ? AND plan_key IS NOT NULL AND plan_key != 'free' LIMIT 1",
+      args: [user.id],
+    });
+    if (!history.rows.length) {
+      return NextResponse.json(
+        { error: "Renewals are only available to past members." },
+        { status: 400 }
+      );
+    }
+    const invoice = await createInvoice({
+      userId: user.id,
+      amount: RENEW_PRICE,
+      planKey: "vault",
+      coin: body.coin,
+      net: body.net,
+      renewal: true,
+    });
+    return NextResponse.json(invoice);
+  }
+
   const plan = getPlan(body.planKey) || PLANS[0];
   // The price actually charged: promo salePrice when set, else the list price.
   const charged = (p: { price: number; salePrice?: number }) =>

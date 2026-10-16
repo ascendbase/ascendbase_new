@@ -212,6 +212,32 @@ type MetricsData = {
   renewals: number;
   signupDates: string[];
   purchases: { paidAt: string; amount: number; planKey: string }[];
+  payments: {
+    orderId: string | null;
+    email: string;
+    planKey: string | null;
+    amount: number;
+    coin: string | null;
+    network: string | null;
+    txHash: string | null;
+    status: string;
+    paidAt: string | null;
+    createdAt: string;
+    expiresAt: string | null;
+    renewal: boolean;
+  }[];
+  subscribers: {
+    userId: number;
+    email: string;
+    planKey: string | null;
+    amount: number;
+    orderId: string | null;
+    txHash: string | null;
+    network: string | null;
+    paidAt: string | null;
+    expiresAt: string | null;
+    daysLeft: number | null;
+  }[];
 };
 
 function weekStartUtc(dateStr: string): number {
@@ -328,6 +354,101 @@ function MetricsTab() {
               <span className="text-white/70">{t.planKey}</span>
               <span className="text-white/45">{t.count} active</span>
               <span className="font-semibold text-green-glow">{Math.round(t.revenue)} USDT</span>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Subscriber roster: everyone currently holding paid access, sorted by
+          urgency (soonest expiry first) so renewals-at-risk are on top. */}
+      <GlassCard className="p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <span className="font-bold">Active subscribers ({data.subscribers.length})</span>
+          <span className="text-xs text-white/40">sorted by days left</span>
+        </div>
+        <div className="mt-3 space-y-2">
+          {data.subscribers.length === 0 && (
+            <p className="text-sm text-white/40">No active paid subscribers yet.</p>
+          )}
+          {data.subscribers.map((s) => {
+            const urgent = s.daysLeft !== null && s.daysLeft <= 7;
+            return (
+              <div
+                key={`${s.userId}-${s.orderId}`}
+                className={`rounded-xl border p-3 ${
+                  urgent ? "border-red/40 bg-red/[0.05]" : "border-white/10 bg-white/[0.03]"
+                }`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">{s.email}</span>
+                  <Badge tone={urgent ? "red" : "green"}>
+                    {s.daysLeft === null
+                      ? "no expiry"
+                      : s.daysLeft <= 0
+                      ? "expiring today"
+                      : `${s.daysLeft} day${s.daysLeft === 1 ? "" : "s"} left`}
+                  </Badge>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/50">
+                  <span className="font-semibold text-green-glow">
+                    {s.planKey} · {s.amount} USDT
+                  </span>
+                  {s.paidAt && <span>paid {s.paidAt.slice(0, 10)}</span>}
+                  {s.expiresAt && <span>until {s.expiresAt.slice(0, 10)}</span>}
+                  {s.network && <span>{s.network}</span>}
+                  {s.orderId && (
+                    <span className="truncate font-mono text-[10px] text-white/30">
+                      {s.orderId}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </GlassCard>
+
+      {/* Full payment ledger: every confirmed payment ever, newest first. */}
+      <GlassCard className="p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <span className="font-bold">Payment history ({data.payments.length})</span>
+          <span className="text-xs text-white/40">every confirmed payment</span>
+        </div>
+        <div className="mt-3 space-y-2">
+          {data.payments.length === 0 && (
+            <p className="text-sm text-white/40">No payments yet.</p>
+          )}
+          {data.payments.map((p, i) => (
+            <div
+              key={`${p.orderId}-${i}`}
+              className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-semibold">{p.email}</span>
+                <div className="flex items-center gap-2">
+                  {p.renewal && <Badge tone="white">renewal</Badge>}
+                  <Badge tone={p.status === "active" ? "green" : "white"}>
+                    {p.status}
+                  </Badge>
+                  <span className="font-bold text-green-glow">
+                    {p.amount} {p.coin || "USDT"}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/50">
+                <span className="font-semibold">{p.planKey}</span>
+                {p.paidAt && <span>paid {p.paidAt.slice(0, 10)}</span>}
+                {p.expiresAt && <span>until {p.expiresAt.slice(0, 10)}</span>}
+                {p.network && <span>{p.network}</span>}
+                {p.txHash && (
+                  <span
+                    className="max-w-[240px] truncate font-mono text-[10px] text-white/30"
+                    title={p.txHash}
+                  >
+                    tx: {p.txHash}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>

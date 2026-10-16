@@ -299,9 +299,16 @@ export default function Home() {
                   <div className="relative flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
                     <div
                       aria-hidden
-                      className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white font-serif text-2xl font-black tracking-tight text-black"
+                      className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/[0.08]"
                     >
-                      GQ
+                      {/* White GQ wordmark (transparent PNG) on a dark glass
+                          tile — high contrast, reads as a press logo. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/gq_logo.png"
+                        alt="GQ"
+                        className="h-7 w-auto object-contain"
+                      />
                     </div>
                     <div className="min-w-0">
                       <div className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">

@@ -145,9 +145,9 @@ function parseBlocks(raw: any): any[] {
 export default function AdminInner() {
   const router = useRouter();
   const [ready, setReady] = useState(true);
-  const [tab, setTab] = useState<"content" | "payments" | "support" | "users" | "vault">(
-    "content"
-  );
+  const [tab, setTab] = useState<
+    "content" | "payments" | "support" | "users" | "metrics" | "vault"
+  >("content");
 
   useEffect(() => {
     (async () => {
@@ -175,7 +175,7 @@ export default function AdminInner() {
       <Container className="py-12">
         <h1 className="text-3xl font-black tracking-tight">Admin</h1>
         <div className="mt-5 flex flex-wrap gap-2">
-           {(["content", "payments", "support", "users", "vault"] as const).map((t) => (
+           {(["content", "payments", "support", "users", "metrics", "vault"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -192,10 +192,147 @@ export default function AdminInner() {
           {tab === "payments" && <PaymentsTab />}
           {tab === "support" && <SupportTab />}
           {tab === "users" && <UsersTab />}
+          {tab === "metrics" && <MetricsTab />}
           {tab === "vault" && <VaultChatTab />}
         </div>
       </Container>
     </>
+  );
+}
+
+/* ---------------- METRICS (weekly profit check) ---------------- */
+type MetricsData = {
+  totalUsers: number;
+  paidEverCount: number;
+  activePaidCount: number;
+  conversionPct: number;
+  revenueTotal: number;
+  revenueLast30: number;
+  byTier: { planKey: string; count: number; revenue: number }[];
+  renewals: number;
+  signupDates: string[];
+  purchases: { paidAt: string; amount: number; planKey: string }[];
+};
+
+function weekStartUtc(dateStr: string): number {
+  const d = new Date(dateStr.replace(" ", "T") + "Z").getTime();
+  if (isNaN(d)) return 0;
+  const day = (new Date(d).getUTCDay() + 6) % 7; // 0 = Monday
+  return Math.floor((d - day * 86400000) / 86400000) * 86400000;
+}
+
+function MetricsTab() {
+  const [data, setData] = useState<MetricsData | null>(null);
+  const [err, setErr] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const r = await fetch("/api/admin/metrics");
+      if (r.ok) setData(await r.json());
+      else setErr("Failed to load metrics.");
+    })();
+  }, []);
+
+  if (err) return <GlassCard className="p-6 text-sm text-red-glow">{err}</GlassCard>;
+  if (!data) return <GlassCard className="p-6 text-sm text-white/50">Loading…</GlassCard>;
+
+  // Bucket the last 8 weeks (oldest → newest).
+  const now = Date.now();
+  const weeks: { label: string; start: number; signups: number; sales: number; revenue: number }[] = [];
+  for (let i = 7; i >= 0; i--) {
+    const start = Math.floor((now - i * 7 * 86400000) / (7 * 86400000)) * (7 * 86400000);
+    const end = start + 7 * 86400000;
+    const label = new Date(start).toISOString().slice(5, 10);
+    weeks.push({ label, start, signups: 0, sales: 0, revenue: 0 });
+  }
+  for (const s of data.signupDates) {
+    const w = weekStartUtc(s);
+    const bucket = weeks.find((x) => x.start === w);
+    if (bucket) bucket.signups++;
+  }
+  for (const p of data.purchases) {
+    const w = weekStartUtc(p.paidAt);
+    const bucket = weeks.find((x) => x.start === w);
+    if (bucket) {
+      bucket.sales++;
+      bucket.revenue += p.amount;
+    }
+  }
+  const maxBar = Math.max(1, ...weeks.map((w) => Math.max(w.signups, w.sales)));
+
+  const kpis = [
+    { label: "Total signups", value: String(data.totalUsers), sub: "all time" },
+    { label: "Paid members", value: String(data.paidEverCount), sub: "ever paid" },
+    { label: "Active paid now", value: String(data.activePaidCount), sub: `${data.renewals} renewals` },
+    { label: "Signup→paid", value: `${data.conversionPct}%`, sub: "target ≥4%" },
+    { label: "Revenue total", value: `${Math.round(data.revenueTotal)} USDT`, sub: "active subs" },
+    { label: "Revenue 30d", value: `${Math.round(data.revenueLast30)} USDT`, sub: "last 30 days" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {kpis.map((k) => (
+          <GlassCard key={k.label} className="p-4">
+            <div className="text-xs uppercase tracking-wide text-white/40">{k.label}</div>
+            <div className="mt-1 text-2xl font-black text-white">{k.value}</div>
+            <div className="text-xs text-white/40">{k.sub}</div>
+          </GlassCard>
+        ))}
+      </div>
+
+      <GlassCard className="p-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <span className="font-bold">Last 8 weeks</span>
+          <span className="text-xs text-white/40">signups · sales · revenue</span>
+        </div>
+        <div className="mt-4 space-y-2">
+          {weeks.map((w) => (
+            <div key={w.label} className="flex items-center gap-2 text-xs">
+              <span className="w-12 shrink-0 text-white/40">{w.label}</span>
+              <div className="flex h-4 flex-1 gap-[2px] overflow-hidden rounded-full bg-white/5">
+                <div
+                  className="h-full bg-white/30"
+                  style={{ width: `${(w.signups / maxBar) * 60}%` }}
+                  title={`Signups: ${w.signups}`}
+                />
+                <div
+                  className="h-full bg-green-glow"
+                  style={{ width: `${(w.sales / maxBar) * 40}%` }}
+                  title={`Sales: ${w.sales}`}
+                />
+              </div>
+              <span className="w-28 shrink-0 text-right text-white/55">
+                {w.signups} signups · {w.sales} sales
+              </span>
+              <span className="w-16 shrink-0 text-right font-semibold text-green-glow">
+                {Math.round(w.revenue)}₮
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-white/35">
+          Visitors aren&apos;t in the DB — check Vercel Analytics for the traffic number.
+          Weekly review rule: sales climbing → keep shipping; flat 2 weeks → rework the weakest recent change.
+        </p>
+      </GlassCard>
+
+      <GlassCard className="p-4">
+        <div className="font-bold">Revenue by tier (active subs)</div>
+        <div className="mt-3 space-y-2">
+          {data.byTier.length === 0 && (
+            <p className="text-sm text-white/40">No active paid subscriptions yet.</p>
+          )}
+          {data.byTier.map((t) => (
+            <div key={t.planKey} className="flex items-center justify-between text-sm">
+              <span className="text-white/70">{t.planKey}</span>
+              <span className="text-white/45">{t.count} active</span>
+              <span className="font-semibold text-green-glow">{Math.round(t.revenue)} USDT</span>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+    </div>
   );
 }
 

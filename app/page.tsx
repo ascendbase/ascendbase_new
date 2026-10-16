@@ -285,6 +285,54 @@ export default function Home() {
                     allowFullScreen
                   />
                 </div>
+
+                {/* Press proof — GQ Magazine literally reviewed this tool.
+                    Placed right under the demo so the citation lands where
+                    the visitor is deciding whether the tool is legit. */}
+                <div className="relative mt-6 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-transparent p-5 sm:p-6">
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute -top-6 left-3 select-none font-serif text-[120px] leading-none text-white/[0.06]"
+                  >
+                    “
+                  </span>
+                  <div className="relative flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
+                    <div
+                      aria-hidden
+                      className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white font-serif text-2xl font-black tracking-tight text-black"
+                    >
+                      GQ
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.25em] text-white/40">
+                        Featured in GQ Magazine
+                      </div>
+                      <p className="mt-2 text-sm italic leading-relaxed text-white/75 sm:text-[15px]">
+                        “An online tool called{" "}
+                        <span className="font-semibold not-italic text-white">
+                          Ascendbase Ratios
+                        </span>{" "}
+                        promised a more accurate ‘harmony analysis.’ … My
+                        nose-to-face width ratio, midface-to-lower-face height
+                        ratio, and chin width were, according to the app,{" "}
+                        <span className="font-semibold not-italic text-green-glow">
+                          all above average.
+                        </span>
+                        ”
+                      </p>
+                      <a
+                        href="https://www.gq-magazine.co.uk/article/inside-the-psl-scale-the-looksmaxxer-rating-system-that-all-the-teenagers-are-referencing"
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-white/45 underline underline-offset-2 transition hover:text-white/80"
+                      >
+                        Read the full GQ article
+                        <span aria-hidden>→</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="mt-5 text-center">
                   <Link href="/ratios">
                     <PrimaryButton className="px-8 py-3 text-base">

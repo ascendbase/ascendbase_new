@@ -58,6 +58,7 @@ type UserRow = {
   id: number;
   email: string;
   role: string;
+  created_at?: string;
   sub_status: string | null;
   sub_expires: string | null;
   sub_plan_key: string | null;
@@ -1778,6 +1779,36 @@ function UsersTab() {
               </div>
               <div className="text-xs text-white/45">Total sign-ups</div>
             </div>
+            {/* Joiner velocity: computed client-side from the full users
+                list (created_at is returned by the API for every row). */}
+            <div>
+              <div className="text-2xl font-black text-white">
+                {
+                  users.filter((u) => {
+                    if (!u.created_at) return false;
+                    const t = new Date(
+                      u.created_at.replace(" ", "T") + "Z"
+                    ).getTime();
+                    return !isNaN(t) && t >= Date.now() - 7 * 86400000;
+                  }).length
+                }
+              </div>
+              <div className="text-xs text-white/45">Joined last 7 days</div>
+            </div>
+            <div>
+              <div className="text-2xl font-black text-white">
+                {
+                  users.filter((u) => {
+                    if (!u.created_at) return false;
+                    const t = new Date(
+                      u.created_at.replace(" ", "T") + "Z"
+                    ).getTime();
+                    return !isNaN(t) && t >= Date.now() - 30 * 86400000;
+                  }).length
+                }
+              </div>
+              <div className="text-xs text-white/45">Joined last 30 days</div>
+            </div>
             <div>
               <div className="text-2xl font-black text-green-glow">
                 {stats ? stats.paid19 : "—"}
@@ -1825,6 +1856,12 @@ function UsersTab() {
                 <span className="font-bold">{u.email}</span>
                 {u.role === "admin" && <Badge tone="red">admin</Badge>}
               </div>
+              {u.created_at && (
+                <p className="mt-1 text-xs text-white/45">
+                  Joined{" "}
+                  {new Date(u.created_at.replace(" ", "T") + "Z").toLocaleDateString()}
+                </p>
+              )}
               {u.role !== "admin" && (
                 <p className="mt-1 text-sm">
                   <span className="text-white/45">Purchased tier: </span>

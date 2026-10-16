@@ -299,10 +299,10 @@ export default function Home() {
                   <div className="relative flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
                     <div
                       aria-hidden
-                      className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-white/15 bg-white/[0.08]"
+                      className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-black"
                     >
-                      {/* White GQ wordmark (transparent PNG) on a dark glass
-                          tile — high contrast, reads as a press logo. */}
+                      {/* White GQ wordmark (transparent PNG) on a solid black
+                          tile — max contrast, clean press-logo look. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src="/gq_logo.png"

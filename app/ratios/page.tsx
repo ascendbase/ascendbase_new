@@ -8,6 +8,7 @@ import { Instructions } from './components/core/Instructions';
 import { RatioSelector } from './components/core/RatioSelector';
 import { LandmarkEditor, type LandmarkEditorRef } from './components/core/LandmarkEditor';
 import { RatioDisplay } from './components/core/RatioDisplay';
+import { ResultsHandoff } from './components/core/ResultsHandoff';
 import { ScoreExplanation } from './components/core/ScoreExplanation';
 import { NoseAnalysisDisplay } from './components/core/NoseAnalysisDisplay';
 import { Toaster } from './components/ui/toaster';
@@ -474,22 +475,28 @@ export default function RatiosPage() {
                 </div>
                 <div className="space-y-6">
                   {harmonyData && harmonyTier && (
-                    <Card className="glass-card shadow-md">
-                      <CardHeader>
-                        <CardTitle className="text-xl font-bold text-white">Harmony Score</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className={`text-4xl font-bold ${harmonyTier.color}`}>
-                          {harmonyData.harmonyScore.toFixed(1)} / 100
-                        </p>
-                        <p className="text-lg mt-1 text-white/80">
-                          {harmonyTier.name}{' '}
-                          <span className="text-white/45">
-                            ({harmonyTier.qualifier}, {harmonyTier.rating}/5)
-                          </span>
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <>
+                      <Card className="glass-card shadow-md">
+                        <CardHeader>
+                          <CardTitle className="text-xl font-bold text-white">Harmony Score</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className={`text-4xl font-bold ${harmonyTier.color}`}>
+                            {harmonyData.harmonyScore.toFixed(1)} / 100
+                          </p>
+                          <p className="text-lg mt-1 text-white/80">
+                            {harmonyTier.name}{' '}
+                            <span className="text-white/45">
+                              ({harmonyTier.qualifier}, {harmonyTier.rating}/5)
+                            </span>
+                          </p>
+                        </CardContent>
+                      </Card>
+                      {/* P1.4: conversion handoff at the highest-intent moment. */}
+                      <ResultsHandoff
+                        tierName={harmonyTier.name}
+                      />
+                    </>
                   )}
                   <ScoreExplanation />
                 </div>

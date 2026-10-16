@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard, PrimaryButton, GhostButton, Badge, Input } from "@/components/ui";
-import { PLANS, FREE_PLAN, getPlan, activePlans, type Plan } from "@/lib/plans";
+import { PLANS, FREE_PLAN, getPlan, activePlans, type Plan, RENEW_PRICE } from "@/lib/plans";
 
 type Network = { coin: string; net: string; address: string; memoSupported: boolean };
 type Invoice = {
@@ -298,8 +298,12 @@ export default function CheckoutPage() {
               </div>
               <div className="rounded-2xl border border-green/30 bg-green/[0.07] p-4 text-center">
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-3xl font-black text-green-glow">15 USDT</span>
-                  <span className="text-base font-medium text-white/35 line-through">19 USDT</span>
+                  <span className="text-3xl font-black text-green-glow">
+                    {RENEW_PRICE} USDT
+                  </span>
+                  <span className="text-base font-medium text-white/35 line-through">
+                    {getPlan("vault")?.price ?? 9} USDT
+                  </span>
                 </div>
                 <p className="mt-2 text-sm text-white/60">
                   Extend your full vault access by 30 days — at the discounted
@@ -313,7 +317,7 @@ export default function CheckoutPage() {
                 onClick={generate}
                 disabled={busy}
               >
-                {busy ? "Generating…" : "Renew for 15 USDT →"}
+                {busy ? "Generating…" : `Renew for ${RENEW_PRICE} USDT →`}
               </PrimaryButton>
               <Link href="/dashboard" className="block">
                 <GhostButton className="w-full">Back to the vault</GhostButton>

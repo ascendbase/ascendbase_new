@@ -7,6 +7,7 @@ import SiteNav from "@/components/SiteNav";
 import MusicPlayer from "@/components/MusicPlayer";
 import { Container, GlassCard, PrimaryButton, Badge } from "@/components/ui";
 import { renderMarkdown } from "@/lib/markdown";
+import { RENEW_PRICE, getPlan } from "@/lib/plans";
 
 type Node = {
   id: number;
@@ -348,12 +349,13 @@ export default function DashboardPage() {
                   Your access has expired
                 </div>
                 <p className="mt-1 text-sm text-white/60">
-                  Renew in 1 click — extend 30 days for 15 USDT instead of 19.
+                  Renew in 1 click — extend 30 days for {RENEW_PRICE} USDT instead
+                  of {getPlan("vault")?.price ?? 9}.
                 </p>
               </div>
               <Link href="/checkout?renew=1">
                 <PrimaryButton tone="green" className="px-5 py-2 text-sm">
-                  Renew for 15 USDT →
+                  Renew for {RENEW_PRICE} USDT →
                 </PrimaryButton>
               </Link>
             </div>
@@ -367,13 +369,14 @@ export default function DashboardPage() {
                   Access ends in {renewDays === 0 ? "less than a day" : `${renewDays} day${renewDays === 1 ? "" : "s"}`}
                 </div>
                 <p className="mt-1 text-sm text-white/60">
-                  Renew early and save: extend 30 days for 15 USDT instead of 19.
-                  Your remaining days are kept.
+                  Renew early and save: extend 30 days for {RENEW_PRICE} USDT
+                  instead of {getPlan("vault")?.price ?? 9}. Your remaining days
+                  are kept.
                 </p>
               </div>
               <Link href="/checkout?renew=1">
                 <PrimaryButton className="px-5 py-2 text-sm">
-                  Renew early — 15 USDT →
+                  Renew early — {RENEW_PRICE} USDT →
                 </PrimaryButton>
               </Link>
             </div>

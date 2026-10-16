@@ -28,8 +28,7 @@ export const PLANS: Plan[] = [
   {
     key: "vault",
     name: "Unlock full vault",
-    price: 19,
-    salePrice: 9,
+    price: 9,
     days: 30,
     description:
       "Open the entire gated vault — every lesson, routine and reference post, on demand.",
@@ -39,14 +38,12 @@ export const PLANS: Plan[] = [
       "30 days of access, re-pay to extend",
     ],
     cta: "Unlock full vault access",
-    // Re-enabled: 19 USDT "Full Vault Access" tier is live again.
     disabled: false,
   },
   {
     key: "advice",
     name: "Personal Looksmaxing Advice",
-    price: 49,
-    salePrice: 19,
+    price: 19,
     days: 30,
     description:
       "Get in contact with me directly and send your face. You receive a complete, personal breakdown of your looks:",
@@ -64,7 +61,6 @@ export const PLANS: Plan[] = [
     key: "coaching",
     name: "Personal Monthly Coaching",
     price: 99,
-    salePrice: 49,
     days: 30,
     description:
       "A full month of hands-on coaching with actual, practical looksmaxing steps tailored to you — not just theory.",
@@ -91,11 +87,11 @@ export function getPlan(key?: string): Plan | undefined {
 
 /**
  * Renewal pricing: existing vault members extend 30 days at a discount
- * (15 vs 19). The renewal invoice uses plan_key "vault" (so every gating /
+ * (7 vs 9). The renewal invoice uses plan_key "vault" (so every gating /
  * display path keeps working) plus a renewal flag on the invoice row that
  * makes confirmPayment EXTEND the existing expiry instead of starting fresh.
  */
-export const RENEW_PRICE = 15;
+export const RENEW_PRICE = 7;
 
 /** Plans actually offered at checkout (excludes paused/disabled ones). */
 export function activePlans(): Plan[] {

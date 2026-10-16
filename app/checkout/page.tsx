@@ -636,6 +636,28 @@ export default function CheckoutPage() {
         <p className="mt-4 text-center text-xs text-white/35">
           Self-custody crypto · pay from any wallet · no account, no KYC
         </p>
+
+        {/* Third-party trust signal: GQ covered the free ratios tool that
+            anchors this funnel. Real press beats anonymous testimonials. */}
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-center">
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/40">
+            As covered by GQ Magazine
+          </div>
+          <p className="mt-2 text-sm italic leading-relaxed text-white/65">
+            “An online tool called Ascendbase Ratios promised a more accurate
+            ‘harmony analysis’… My nose-to-face width ratio, midface-to-lower-face
+            height ratio, and chin width were, according to the app, all above
+            average.”
+          </p>
+          <a
+            href="https://www.gq-magazine.co.uk/article/inside-the-psl-scale-the-looksmaxxer-rating-system-that-all-the-teenagers-are-referencing"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="mt-2 inline-block text-xs font-semibold text-white/40 underline underline-offset-2 hover:text-white/70"
+          >
+            Read the full GQ article →
+          </a>
+        </div>
       </Container>
     </>
   );

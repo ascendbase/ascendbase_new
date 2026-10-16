@@ -43,7 +43,7 @@ export const PLANS: Plan[] = [
   {
     key: "advice",
     name: "Personal Looksmaxing Advice",
-    price: 19,
+    price: 49,
     days: 30,
     description:
       "Get in contact with me directly and send your face. You receive a complete, personal breakdown of your looks:",

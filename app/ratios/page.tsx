@@ -493,9 +493,7 @@ export default function RatiosPage() {
                         </CardContent>
                       </Card>
                       {/* P1.4: conversion handoff at the highest-intent moment. */}
-                      <ResultsHandoff
-                        tierName={harmonyTier.name}
-                      />
+                      <ResultsHandoff />
                     </>
                   )}
                   <ScoreExplanation />

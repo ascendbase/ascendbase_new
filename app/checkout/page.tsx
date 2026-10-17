@@ -83,6 +83,12 @@ export default function CheckoutPage() {
         setRenewMode(true);
         setSelPlan("vault");
       }
+      // Deep-link plan preselection: ?plan=advice etc. (used by the
+      // calculator results handoff to land directly on the right tier).
+      const planParam = params.get("plan");
+      if (planParam && getPlan(planParam) && !renewParam) {
+        setSelPlan(planParam);
+      }
       // Awaiting your verification — show the waiting screen, not the
       // plan picker, so a refresh doesn't look like nothing happened.
       if (me.subscription && me.subscription.status === "pending") {

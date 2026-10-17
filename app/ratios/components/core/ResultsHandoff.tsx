@@ -17,11 +17,7 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 
 type HandoffState = 'loading' | 'visitor' | 'free' | 'paid';
 
-export function ResultsHandoff({
-  tierName,
-}: {
-  tierName: string;
-}) {
+export function ResultsHandoff() {
   const [state, setState] = useState<HandoffState>('loading');
   const [planKey, setPlanKey] = useState<string | null>(null);
 
@@ -55,43 +51,49 @@ export function ResultsHandoff({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg font-bold text-white">
           <Sparkles className="h-5 w-5 text-primary" />
-          {state === 'visitor' ? 'What actually moves this number?' : 'Want to know what to DO about this score?'}
+          {state === 'visitor'
+            ? 'Keep in mind: this is NOT your actual rating'
+            : 'Your harmony score is only 40–60% of the picture'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm leading-relaxed text-white/65">
           {state === 'visitor' ? (
             <>
-              Your <span className="font-semibold text-white">{tierName}</span>{' '}
-              score is computed — but a number alone doesn't change your face.
-              The ascendbase vault explains the craniofacial mechanics behind
-              every ratio you just measured, and what genuinely improves them.
+              Harmony — the balance of your facial ratios — plays roughly{" "}
+              <span className="font-semibold text-white">40–60%</span> of total
+              importance in male facial attractiveness. It doesn't measure the
+              rest: bone structure, angularity, sexual dimorphism, skin and
+              framing — the features that finally determine where you actually
+              land. The vault breaks all of it down.
             </>
           ) : (
             <>
-              The vault explains your ratios. A{" "}
+              This score measures harmony only. A{" "}
               <span className="font-semibold text-white">
-                personal evaluation
+                manual, professional facial evaluation
               </span>{" "}
-              tells you exactly what to do about them: your individual flaw
-              list, face morphs showing your potential, and a fix plan built
-              around your actual measurements.
+              covers everything the calculator can't: your{" "}
+              <span className="font-semibold text-white">true overall rating</span>
+              , your individual flaw list, face morphs showing your potential,
+              and a concrete plan for what to actually improve — done personally
+              by me, not generated.
             </>
           )}
         </p>
         <Link
-          href={state === 'visitor' ? '/signup' : '/checkout'}
+          href={state === 'visitor' ? '/signup' : '/checkout?plan=advice'}
           className="ratios-btn-red inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
         >
           {state === 'visitor'
-            ? 'Create a free account — see what drives your score'
+            ? 'Create a free account — see what the other half measures'
             : 'Get your personal facial evaluation →'}
           <ArrowRight className="h-4 w-4" />
         </Link>
         <p className="text-center text-xs text-white/35">
           {state === 'visitor'
             ? 'Free forever · the calculator stays free either way'
-            : 'Direct line to the founder · full breakdown in ~48h'}
+            : 'Direct line to the founder · done manually, not by AI'}
         </p>
       </CardContent>
     </Card>

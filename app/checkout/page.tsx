@@ -83,6 +83,12 @@ export default function CheckoutPage() {
         setRenewMode(true);
         setSelPlan("vault");
       }
+      // Returning from Lava's hosted payment page: the webhook usually
+      // activated the sub already — start polling so the vault opens
+      // as soon as it's confirmed.
+      if (params.get("lava_return")) {
+        setPaid(true);
+      }
       // Deep-link plan preselection: ?plan=advice etc. (used by the
       // calculator results handoff to land directly on the right tier).
       const planParam = params.get("plan");
@@ -134,6 +140,30 @@ export default function CheckoutPage() {
         ? data.networks[0]
         : { coin: data.coin, net: data.net, address: data.address, memoSupported: false }
     );
+  }
+
+  // Card payment via Lava.top (hosted checkout, webhook auto-activation).
+  // The member leaves for Lava's payment page and returns to
+  // /checkout?lava_return=<orderId> — the polling loop below then flips
+  // to the vault as soon as the webhook confirms the payment.
+  async function payWithCard() {
+    setBusy(true);
+    setError("");
+    const r = await fetch("/api/checkout/lava", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        planKey: selPlan,
+        renew: renewMode || undefined,
+      }),
+    });
+    const data = await r.json();
+    setBusy(false);
+    if (!r.ok) {
+      setError(data.error || "Card payment is unavailable right now.");
+      return;
+    }
+    if (data.url) window.location.href = data.url;
   }
 
   async function activateFree() {
@@ -320,10 +350,18 @@ export default function CheckoutPage() {
               <PrimaryButton
                 tone="green"
                 className="w-full"
+                onClick={payWithCard}
+                disabled={busy}
+              >
+                {busy ? "Redirecting…" : `Renew for ${RENEW_PRICE} USDT — pay by card →`}
+              </PrimaryButton>
+              <PrimaryButton
+                tone="green"
+                className="w-full"
                 onClick={generate}
                 disabled={busy}
               >
-                {busy ? "Generating…" : `Renew for ${RENEW_PRICE} USDT →`}
+                {busy ? "Generating…" : `Renew for ${RENEW_PRICE} USDT — pay with crypto →`}
               </PrimaryButton>
               <Link href="/dashboard" className="block">
                 <GhostButton className="w-full">Back to the vault</GhostButton>
@@ -419,6 +457,21 @@ export default function CheckoutPage() {
                   </button>
                 ))}
               </div>
+              {selPlan !== "free" && (
+                <div className="space-y-1">
+                  <PrimaryButton
+                    tone="green"
+                    className="w-full"
+                    onClick={payWithCard}
+                    disabled={busy}
+                  >
+                    {busy ? "Redirecting…" : "Pay by card (recommended)"}
+                  </PrimaryButton>
+                  <p className="text-center text-xs text-white/40">
+                    Visa / Mastercard · instant access · processed by Lava.
+                  </p>
+                </div>
+              )}
               <PrimaryButton
                 tone="green"
                 className="w-full"
@@ -431,6 +484,12 @@ export default function CheckoutPage() {
                       ? FREE_PLAN.cta
                       : (getPlan(selPlan)?.cta || "Continue to payment"))}
               </PrimaryButton>
+              {selPlan !== "free" && (
+                <p className="text-center text-xs text-white/40">
+                  Crypto (USDT) below is fine too — the card option is just
+                  faster for most people.
+                </p>
+              )}
             </div>
           ) : paid ? (
               <div className="space-y-3 text-center">

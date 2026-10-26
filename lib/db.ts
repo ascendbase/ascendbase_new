@@ -96,6 +96,11 @@ export async function initDb() {
   // Renewal flag on invoices: when set, confirmPayment extends the member's
   // existing expiry instead of starting a fresh 30-day window.
   await migrateColumn("invoices", "renewal", "INTEGER NOT NULL DEFAULT 0");
+  // Lava.top contract id: the webhook matches this to our invoice row so
+  // card payments activate the subscription automatically.
+  await migrateColumn("invoices", "contract_id", "TEXT");
+  // Payment provider that produced the invoice ("crypto" | "lava").
+  await migrateColumn("invoices", "provider", "TEXT NOT NULL DEFAULT 'crypto'");
 
   // Migrations for databases created before these columns existed.
   await migrateColumn("subscriptions", "network", "TEXT");

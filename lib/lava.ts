@@ -60,7 +60,12 @@ export async function createLavaInvoice(opts: {
     email: opts.email,
     offerId: opts.offerId,
     currency: "USD",
+    // Force English on the checkout page — try every known parameter name
+    // across Lava API versions. Lava serves Russian by default when the
+    // merchant account is RU-based.
     buyerLanguage: "EN",
+    lang: "en",
+    locale: "en",
   };
   // NOTE: `amount` is NOT sent — all offers are fixed-price in the Lava
   // dashboard. Sending `amount` to a non-dynamic offer causes a 400 error
@@ -93,9 +98,11 @@ export async function createLavaInvoice(opts: {
     throw new Error("Lava invoice response missing id/paymentUrl.");
   }
   // Force English on the hosted payment page. Lava serves Russian by
-  // default when the merchant account is RU-based; this URL param overrides.
-  if (!inv.paymentUrl.includes("lang=")) {
-    inv.paymentUrl += (inv.paymentUrl.includes("?") ? "&" : "?") + "lang=en";
+  // default when the merchant account is RU-based. We append ?lang=en
+  // (or &lang=en if there are existing params) to the hosted checkout URL.
+  if (inv.paymentUrl && !inv.paymentUrl.includes("lang=")) {
+    const separator = inv.paymentUrl.includes("?") ? "&" : "?";
+    inv.paymentUrl = inv.paymentUrl + separator + "lang=en";
   }
   return inv;
 }

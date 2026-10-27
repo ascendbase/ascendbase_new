@@ -72,11 +72,10 @@ function TierCard({ p, planKey }: { p: typeof PLANS[number]; planKey: string | n
         {p.salePrice != null && p.salePrice !== p.price ? (
           <>
             <span className="text-3xl font-black text-green-glow">
-              {p.salePrice}
-              <span className="text-base font-medium text-white/45"> USDT</span>
+              ${p.salePrice}
             </span>
             <span className="text-base font-medium text-white/35 line-through">
-              {p.price} USDT
+              ${p.price}
             </span>
           </>
         ) : (

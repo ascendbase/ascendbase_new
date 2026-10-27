@@ -60,6 +60,7 @@ export async function createLavaInvoice(opts: {
     email: opts.email,
     offerId: opts.offerId,
     currency: "USD",
+    buyerLanguage: "EN",
   };
   // NOTE: `amount` is NOT sent — all offers are fixed-price in the Lava
   // dashboard. Sending `amount` to a non-dynamic offer causes a 400 error

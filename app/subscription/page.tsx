@@ -156,7 +156,7 @@ export default function SubscriptionPage() {
                   <GlassCard key={p.key} className="p-4">
                     <div className="font-bold">{p.name}</div>
                     <div className="mt-1 text-xl font-black text-green-glow">
-                      +{diff} USDT
+                      +${diff}
                     </div>
                     <p className="mt-2 text-xs text-white/50">{p.description}</p>
                     <Link

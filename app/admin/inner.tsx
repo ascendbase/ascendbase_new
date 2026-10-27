@@ -80,14 +80,14 @@ function planLabel(
   const plan = byKey || byAmount;
   if (status === "pending") {
     return plan
-      ? `Pending: ${plan.price} USDT · ${plan.name}`
+      ? `Pending: $${plan.price} · ${plan.name}`
       : amount != null
-      ? `Pending: ${amount} USDT`
+      ? `Pending: $${amount}`
       : "Pending payment";
   }
   if (status === "active") {
     if (!plan) return "Free";
-    return `${plan.price} USDT · ${plan.name}`;
+    return `$${plan.price} · ${plan.name}`;
   }
   return "No subscription";
 }

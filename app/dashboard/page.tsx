@@ -349,8 +349,8 @@ export default function DashboardPage() {
                   Your access has expired
                 </div>
                 <p className="mt-1 text-sm text-white/60">
-                  Renew in 1 click — extend 30 days for {RENEW_PRICE} USDT instead
-                  of {getPlan("vault")?.price ?? 9}.
+                  Renew in 1 click — extend 30 days for ${RENEW_PRICE} instead
+                  of ${getPlan("vault")?.price ?? 9}.
                 </p>
               </div>
               <Link href="/checkout?renew=1">

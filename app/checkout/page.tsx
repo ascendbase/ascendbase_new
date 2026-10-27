@@ -171,6 +171,26 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
+              {selPlan !== "free" && (
+                <div className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-4">
+                  <div className="flex items-center gap-2 text-sm font-bold text-white">
+                    <span className="text-lg">🎁</span>
+                    FREE BONUS — PSL-accurate morph of your face
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-white/55">
+                    Subscribe, then DM me on Instagram to claim your custom
+                    morph. Done personally, not AI-generated.
+                  </p>
+                  <a
+                    href="https://www.instagram.com/feralmaxing/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  >
+                    DM me on Instagram →
+                  </a>
+                </div>
+              )}
               <div className="space-y-1">
                 <PrimaryButton tone="green" className="w-full" onClick={selPlan === "free" ? activateFree : payWithCard} disabled={busy}>
                   {busy ? "Redirecting…" : (selPlan === "free" ? FREE_PLAN.cta : `Pay $${getPlan(selPlan)?.price ?? ""} — Pay by card`)}

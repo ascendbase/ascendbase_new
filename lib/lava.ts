@@ -16,7 +16,7 @@ import { db } from "./db";
  * Auth: X-Api-Key header (same account key) — verified server-side.
  */
 
-const LAVA_BASE = "https://api.lava.top";
+const LAVA_BASE = "https://gate.lava.top";
 
 export type LavaInvoice = {
   id: string;

@@ -61,7 +61,9 @@ export async function createLavaInvoice(opts: {
     offerId: opts.offerId,
     currency: "USD",
   };
-  if (opts.amount) body.amount = opts.amount;
+  // NOTE: `amount` is NOT sent — all offers are fixed-price in the Lava
+  // dashboard. Sending `amount` to a non-dynamic offer causes a 400 error
+  // ("is not dynamic price"). The offer's dashboard price is used instead.
   if (opts.successUrl) body.successful_return_url = opts.successUrl;
   if (opts.failureUrl) body.failure_return_url = opts.failureUrl;
   if (opts.cancelUrl) body.cancel_return_url = opts.cancelUrl;

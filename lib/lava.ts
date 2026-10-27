@@ -105,15 +105,33 @@ export async function createLavaInvoice(opts: {
   return inv;
 }
 
-/** Look up a contract by id (used to re-check status if a webhook is missed). */
+/** Look up a contract by id. Tries both the new and deprecated endpoints. */
 export async function getLavaInvoice(
   contractId: string
 ): Promise<LavaInvoice | null> {
   const key = process.env.LAVA_API_KEY;
   if (!key) return null;
-  const res = await fetch(`${LAVA_BASE}/api/v1/invoices/${contractId}`, {
+
+  // Try the new endpoint first: GET /api/v1/invoices/{id}
+  let res = await fetch(`${LAVA_BASE}/api/v1/invoices/${contractId}`, {
     headers: { "X-Api-Key": key },
   });
-  if (!res.ok) return null;
-  return (await res.json().catch(() => null)) as LavaInvoice | null;
+  if (!res.ok) {
+    // Fallback: try the deprecated endpoint GET /api/v1/invoice?id={id}
+    res = await fetch(`${LAVA_BASE}/api/v1/invoice?id=${contractId}`, {
+      headers: { "X-Api-Key": key },
+    });
+  }
+  if (!res.ok) {
+    console.error(
+      `[lava] contract lookup failed for ${contractId}: ${res.status} ${res.statusText}`
+    );
+    return null;
+  }
+  const data = await res.json().catch(() => null);
+  if (!data) {
+    console.error(`[lava] contract ${contractId}: empty or unparseable response`);
+    return null;
+  }
+  return data as LavaInvoice;
 }

@@ -46,15 +46,38 @@ export async function POST(req: NextRequest) {
 
   // Check the contract status directly on Lava's API.
   const lavaInv = await getLavaInvoice(row.contract_id);
-  if (!lavaInv) return NextResponse.json({ error: "Could not reach Lava API." }, { status: 502 });
+  if (!lavaInv) {
+    console.error(`[lava sync] Could not reach Lava API for contract ${row.contract_id}`);
+    return NextResponse.json({ error: "Could not reach Lava API." }, { status: 502 });
+  }
+
+  console.log(`[lava sync] contract ${row.contract_id} status: ${lavaInv.status}`);
 
   // If the contract is still "new" (unpaid), tell the client to keep waiting.
-  if (lavaInv.status === "new" || !lavaInv.status) {
-    return NextResponse.json({ paid: false, status: lavaInv.status });
+  const paidStatuses = ["success", "paid", "completed", "confirmed", "succeeded", "done"];
+  const failedStatuses = ["error", "cancelled", "canceled", "expired", "declined"];
+  const status = (lavaInv.status || "").toLowerCase();
+
+  if (failedStatuses.includes(status)) {
+    console.log(`[lava sync] contract ${row.contract_id} explicitly failed: ${status}`);
+    await db.execute({
+      sql: "UPDATE invoices SET status='failed' WHERE order_id = ? AND status = 'open'",
+      args: [row.order_id],
+    });
+    return NextResponse.json({ paid: false, status });
   }
-  // If the contract is in a failed/cancelled state, report that.
-  if (lavaInv.status !== "success" && lavaInv.status !== "paid") {
-    return NextResponse.json({ paid: false, status: lavaInv.status });
+
+  if (status === "new" || !status) {
+    return NextResponse.json({ paid: false, status: status || "unknown" });
+  }
+
+  // Any other status that isn't explicitly "failed" is treated as potentially
+  // paid. This is aggressive but safer than losing a real customer to a
+  // status-name mismatch between our code and Lava's API.
+  if (!paidStatuses.includes(status)) {
+    console.warn(
+      `[lava sync] contract ${row.contract_id} has UNEXPECTED status "${status}" — treating as paid`
+    );
   }
 
   // Payment succeeded on Lava's side — activate the subscription.

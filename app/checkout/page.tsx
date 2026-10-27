@@ -81,6 +81,16 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!paid) return;
     let alive = true;
+    // First: try the sync fallback (checks Lava's API directly) to activate
+    // the sub even if the webhook didn't fire. Then poll /api/auth/me.
+    const lavaOrderId = new URLSearchParams(window.location.search).get("lava_return");
+    if (lavaOrderId) {
+      fetch("/api/checkout/lava/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: lavaOrderId }),
+      }).catch(() => {});
+    }
     const t = setInterval(async () => {
       const me = await fetch("/api/auth/me").then((r) => r.ok ? r.json() : null);
       if (me?.subscription?.status === "active") {

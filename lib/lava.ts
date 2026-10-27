@@ -91,13 +91,15 @@ export async function createLavaInvoice(opts: {
   if (!inv.id || !inv.paymentUrl) {
     throw new Error("Lava invoice response missing id/paymentUrl.");
   }
-  // Force English on the hosted payment page. Lava serves Russian by
-  // default when the merchant account is RU-based. The ONLY fix is to
-  // append ?lang=en to the output URL — the API body fields are ignored.
-  // We use URL.searchParams.set() for robustness (handles existing params).
+  // Force English on the hosted payment page. Lava determines language
+  // from the URL pathname structure, NOT from query params or browser
+  // headers. We must inject /en into the pathname to force the English
+  // client bundle and bypass IP/browser-based auto-detection.
   if (inv.paymentUrl) {
     const targetUrl = new URL(inv.paymentUrl);
-    targetUrl.searchParams.set("lang", "en");
+    if (!targetUrl.pathname.startsWith("/en")) {
+      targetUrl.pathname = `/en${targetUrl.pathname}`;
+    }
     inv.paymentUrl = targetUrl.toString();
   }
   return inv;

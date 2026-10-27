@@ -92,6 +92,11 @@ export async function createLavaInvoice(opts: {
   if (!inv.id || !inv.paymentUrl) {
     throw new Error("Lava invoice response missing id/paymentUrl.");
   }
+  // Force English on the hosted payment page. Lava serves Russian by
+  // default when the merchant account is RU-based; this URL param overrides.
+  if (!inv.paymentUrl.includes("lang=")) {
+    inv.paymentUrl += (inv.paymentUrl.includes("?") ? "&" : "?") + "lang=en";
+  }
   return inv;
 }
 

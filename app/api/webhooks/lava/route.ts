@@ -51,11 +51,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No contractId in payload." }, { status: 400 });
   }
 
-  // Only success events activate access.
+  // Only success events activate access. Failed/error events get logged
+  // but don't create subscription rows (unless the user asked for it).
   const isPurchaseSuccess = eventType === "payment.success";
   const isRecurringSuccess =
     eventType === "subscription.recurring.payment.success";
+  const isPaymentFailed = eventType === "payment.failed";
   if (!isPurchaseSuccess && !isRecurringSuccess) {
+    if (isPaymentFailed) {
+      // Log the failure but don't create a subscription row — the buyer
+      // can retry. We still check if we have a matching invoice row and
+      // update its status so the admin panel can see it.
+      await db.execute({
+        sql: "UPDATE invoices SET status='failed' WHERE contract_id = ? AND provider = 'lava' AND status = 'open'",
+        args: [contractId],
+      });
+      console.error(
+        `[lava webhook] payment.failed contract=${contractId} buyer=${body.buyer?.email || "?"} err=${body.errorMessage || "unknown"}`
+      );
+    }
     return NextResponse.json({ ok: true, ignored: eventType || "unknown" });
   }
 

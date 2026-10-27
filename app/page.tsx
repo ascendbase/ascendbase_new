@@ -420,8 +420,8 @@ export default function Home() {
             </div>
 
             <p className="mx-auto mt-8 max-w-xl text-center text-sm text-white/45">
-              Payments are crypto-only (USDT) — no bank, no card, no personal ID
-              required. Access is granted after I verify your transfer.
+              Secure payment by card (Visa / Mastercard) — processed by Lava.top.
+              Instant access, no waiting.
             </p>
           </Container>
         </section>
@@ -439,7 +439,7 @@ export default function Home() {
               {[
                 { n: "01", t: "Sign up free", d: "Create your account with an email and password. Takes five seconds — no card." },
                 { n: "02", t: "Read the free vault", d: "Get the grasp on what actually matters here, not random TikTok-level info." },
-                { n: "03", t: "Go deeper (optional)", d: "Pay crypto to unlock members-only deep-dives and personal facial evaluation." },
+                { n: "03", t: "Go deeper (optional)", d: "Unlock members-only deep-dives and personal facial evaluation." },
               ].map((s) => (
                 <GlassCard key={s.n}>
                   <div className="text-red-glow text-2xl font-black">{s.n}</div>

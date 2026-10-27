@@ -61,15 +61,27 @@ export async function GET() {
      ORDER BY paid_at ASC`
   );
 
-  // Full ledger: every payment ever confirmed (any current status), joined
-  // to the member email.
+  // Full ledger: every payment ever (active, cancelled, failed, pending),
+  // joined to the member email. Includes all statuses so the admin can see
+  // every attempt, not just successful ones.
   const paymentLedger = await db.execute(
     `SELECT s.order_id, u.email, s.plan_key, s.amount, s.coin, s.network,
             s.tx_hash, s.status, s.paid_at, s.created_at, s.expires_at,
             COALESCE((SELECT i.renewal FROM invoices i WHERE i.order_id = s.order_id), 0) AS renewal
      FROM subscriptions s JOIN users u ON u.id = s.user_id
-     WHERE s.plan_key IS NOT NULL AND s.plan_key != 'free' AND s.status IN ('active','cancelled')
+     WHERE s.plan_key IS NOT NULL AND s.plan_key != 'free'
      ORDER BY COALESCE(s.paid_at, s.created_at) DESC`
+  );
+
+  // Lava invoices that haven't converted to subscriptions yet (pending/failed
+  // webhooks) — these are payment attempts that never produced a subscription.
+  const lavaAttempts = await db.execute(
+    `SELECT i.contract_id, i.order_id, i.plan_key, i.amount, i.status,
+            i.created_at, u.email
+     FROM invoices i JOIN users u ON u.id = i.user_id
+     WHERE i.provider = 'lava' AND i.contract_id IS NOT NULL
+       AND i.status != 'paid'
+     ORDER BY i.created_at DESC`
   );
 
   // Current subscriber roster: latest active paid sub per user. Rows whose
@@ -135,6 +147,27 @@ export async function GET() {
         createdAt: row.created_at,
         expiresAt: row.expires_at,
         renewal: !!row.renewal,
+      };
+    }),
+    // Lava payment attempts that haven't confirmed yet (pending/failed).
+    lavaAttempts: lavaAttempts.rows.map((r) => {
+      const row = r as unknown as {
+        contract_id: string;
+        order_id: string;
+        plan_key: string | null;
+        amount: number;
+        status: string;
+        created_at: string;
+        email: string;
+      };
+      return {
+        contractId: row.contract_id,
+        orderId: row.order_id,
+        planKey: row.plan_key,
+        amount: Number(row.amount) || 0,
+        status: row.status,
+        createdAt: row.created_at,
+        email: row.email,
       };
     }),
     // Subscriber roster: everyone who currently holds paid access, with

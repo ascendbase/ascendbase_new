@@ -239,6 +239,15 @@ type MetricsData = {
     expiresAt: string | null;
     daysLeft: number | null;
   }[];
+  lavaAttempts: {
+    contractId: string;
+    orderId: string;
+    planKey: string | null;
+    amount: number;
+    status: string;
+    createdAt: string;
+    email: string;
+  }[];
 };
 
 function weekStartUtc(dateStr: string): number {
@@ -408,6 +417,32 @@ function MetricsTab() {
           })}
         </div>
       </GlassCard>
+
+      {/* Lava payment attempts that haven't confirmed yet (pending/failed). */}
+      {data.lavaAttempts?.length > 0 && (
+        <GlassCard className="p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-bold text-red-glow">Pending / failed Lava payments</span>
+            <span className="text-xs text-white/40">{data.lavaAttempts.length} unconfirmed</span>
+          </div>
+          <div className="mt-3 space-y-2">
+            {data.lavaAttempts.map((l, i) => (
+              <div key={i} className="rounded-xl border border-red/20 bg-red/[0.03] p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold">{l.email}</span>
+                  <Badge tone={l.status === "failed" ? "red" : "white"}>{l.status}</Badge>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/50">
+                  <span className="font-semibold">{l.planKey}</span>
+                  <span>${l.amount}</span>
+                  <span>{l.createdAt?.slice(0, 10)}</span>
+                  <span className="truncate font-mono text-[10px] text-white/30">{l.contractId}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       {/* Full payment ledger: every confirmed payment ever, newest first. */}
       <GlassCard className="p-4">

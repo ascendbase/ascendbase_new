@@ -126,11 +126,11 @@ export default function SubscriptionPage() {
               </div>
               <p className="text-sm text-white/55">
                 You’re on the free tier — some vault content is open to everyone.
-                Upgrade anytime with crypto to unlock everything.
+                Upgrade anytime to unlock everything.
               </p>
               <Link href="/checkout">
                 <PrimaryButton className="w-full">
-                  Upgrade with crypto →
+                  Upgrade →
                 </PrimaryButton>
               </Link>
             </div>

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui";
 import { PLANS, type Plan } from "@/lib/plans";
 import VaultChatTab from "./vault-chat";
+import EmailTab from "./email-tab";
 
 type Block =
   | { id: string; type: "text"; text: string; preview?: boolean }
@@ -147,7 +148,7 @@ export default function AdminInner() {
   const router = useRouter();
   const [ready, setReady] = useState(true);
   const [tab, setTab] = useState<
-    "content" | "payments" | "support" | "users" | "metrics" | "vault"
+    "content" | "payments" | "support" | "users" | "metrics" | "email" | "vault"
   >("content");
 
   useEffect(() => {
@@ -176,7 +177,7 @@ export default function AdminInner() {
       <Container className="py-12">
         <h1 className="text-3xl font-black tracking-tight">Admin</h1>
         <div className="mt-5 flex flex-wrap gap-2">
-           {(["content", "payments", "support", "users", "metrics", "vault"] as const).map((t) => (
+           {(["content", "payments", "support", "users", "metrics", "email", "vault"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -194,6 +195,7 @@ export default function AdminInner() {
           {tab === "support" && <SupportTab />}
           {tab === "users" && <UsersTab />}
           {tab === "metrics" && <MetricsTab />}
+          {tab === "email" && <EmailTab />}
           {tab === "vault" && <VaultChatTab />}
         </div>
       </Container>

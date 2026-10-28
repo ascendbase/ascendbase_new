@@ -93,6 +93,27 @@ export async function initDb() {
   `);
   await migrateColumn("support_messages", "image_url", "TEXT");
 
+  // Email infrastructure: every send attempt is logged for the admin Email
+  // tab; broadcast recipients can opt out via the one-click unsubscribe link.
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS email_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      email TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      status TEXT NOT NULL,
+      error TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS email_optouts (
+      email TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
   // Renewal flag on invoices: when set, confirmPayment extends the member's
   // existing expiry instead of starting a fresh 30-day window.
   await migrateColumn("invoices", "renewal", "INTEGER NOT NULL DEFAULT 0");

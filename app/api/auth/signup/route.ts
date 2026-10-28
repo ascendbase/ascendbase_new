@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { initDb } from "@/lib/db";
 import { hashPassword, createSession } from "@/lib/auth";
+import { sendEmail, welcomeEmailHtml } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -31,5 +32,14 @@ export async function POST(req: NextRequest) {
   });
   const userId = Number(r.lastInsertRowid);
   await createSession(userId, "user");
+  // Welcome email — fire-and-forget so signup latency is unaffected.
+  // Sells the advice tier (the flagship) instead of just "welcome".
+  void sendEmail({
+    userId,
+    to: email,
+    subject: "Your account is live — here's what actually works",
+    html: welcomeEmailHtml(),
+    kind: "welcome",
+  });
   return NextResponse.json({ ok: true, userId });
 }

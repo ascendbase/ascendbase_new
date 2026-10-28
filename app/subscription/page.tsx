@@ -53,7 +53,7 @@ export default function SubscriptionPage() {
     <>
       <SiteNav />
       <Container className="py-12">
-        <h1 className="text-3xl font-black tracking-tight">Your account</h1>
+        <h1 className="text-3xl font-black tracking-tight">My plan</h1>
         <p className="mt-1 text-sm text-white/50">{email}</p>
 
         <GlassCard className="mt-6">

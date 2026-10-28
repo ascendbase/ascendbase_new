@@ -94,7 +94,7 @@ export default function SiteNav() {
                 Ratios
               </Link>
               <Link href="/subscription" className={`${linkCls("/subscription")} whitespace-nowrap py-1`}>
-                Account
+                My plan
               </Link>
               {/* Free & 19 tiers get the general Support page.
                    49 & 99 tiers get the Personal line instead

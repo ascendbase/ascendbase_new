@@ -54,7 +54,7 @@ export const PLANS: Plan[] = [
     features: [
       "3 custom face morphs (HTN / Chadlite / Chad)",
       "Built from YOUR actual facial structure — not AI-generated",
-      "Delivered within 48h — send your face pics via the Morphs page (top-right menu)",
+      "Delivered within 48h — send your face pics via the Morphs page (appears in the top-right menu immediately after the purchase of this offer)",
       "Prefer Instagram? Find the Connect page (top-right) and DM me there instead",
     ],
     cta: "Get my morphs",

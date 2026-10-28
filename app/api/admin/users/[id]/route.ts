@@ -19,14 +19,17 @@ export async function POST(
 
   if (action === "grant") {
     // Assign a REAL paid plan so the user is recognized as paid everywhere
-    // (nav "Personal", support tier, vault gating). Defaults to the first
-    // paid plan if none specified.
+    // (nav "Personal"/"Morphs", support tier, vault gating). Defaults to the
+    // first paid plan if none specified.
     const plan = getPlan(planKey) || PLANS[0];
-    const days = plan.days;
-    const expires = new Date(Date.now() + days * 86400000)
-      .toISOString()
-      .replace("T", " ")
-      .slice(0, 19);
+    // Product-type plans (morphs) have no expiry — set expires_at to null
+    // so the /api/auth/me "expired" check doesn't immediately invalidate them.
+    const expires = plan.days > 0
+      ? new Date(Date.now() + plan.days * 86400000)
+          .toISOString()
+          .replace("T", " ")
+          .slice(0, 19)
+      : null;
     await db.execute({
       sql: "INSERT INTO subscriptions (user_id, status, plan, amount, coin, expires_at, plan_key) VALUES (?, 'active', ?, ?, ?, ?, ?)",
       args: [uid, plan.key, plan.price, "USDT", expires, plan.key],

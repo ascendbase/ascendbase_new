@@ -35,6 +35,7 @@ export function lavaOfferIdFor(planKey: string): string | null {
     vault: process.env.LAVA_OFFER_VAULT,
     advice: process.env.LAVA_OFFER_ADVICE,
     coaching: process.env.LAVA_OFFER_COACHING,
+    morphs: process.env.LAVA_OFFER_MORPHS,
   };
   return map[planKey] || null;
 }

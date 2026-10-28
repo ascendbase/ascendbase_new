@@ -11,6 +11,9 @@ export type Plan = {
   cta: string;
   /** When true the plan is hidden from checkout (e.g. paused by owner). */
   disabled?: boolean;
+  /** "subscription" (default) = grants vault access for `days`.
+   *  "product" = one-time delivery (morphs, reports) — no vault access. */
+  type?: "subscription" | "product";
 };
 
 /** The implicit free tier (sign-up). Not a paid plan. */
@@ -65,7 +68,6 @@ export const PLANS: Plan[] = [
     description:
       "A full month of hands-on coaching with actual, practical looksmaxing steps tailored to you — not just theory.",
     features: [
-      // Everything in the 19 & 49 tiers, plus:
       "Direct line to me - message me anytime in your personal built-in chat messenger",
       "Full access to all vault content (free + members-only posts)",
       "Full list of your individual facial flaws",
@@ -78,6 +80,22 @@ export const PLANS: Plan[] = [
       "Full access to the gated vault while coaching is active",
     ],
     cta: "Unlock personal coaching",
+  },
+  {
+    key: "morphs",
+    name: "3 PSL Face Morphs",
+    price: 19,
+    days: 0,
+    type: "product",
+    description:
+      "See yourself at three intensity levels: HTN, Chadlite, and Chad — your genetic ceiling.",
+    features: [
+      "3 custom face morphs (HTN / Chadlite / Chad)",
+      "Built from YOUR actual facial structure",
+      "High quality, not AI-generated",
+      "Delivered within 48h via DM",
+    ],
+    cta: "Get my morphs",
   },
 ];
 

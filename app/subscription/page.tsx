@@ -89,6 +89,11 @@ export default function SubscriptionPage() {
                     <PrimaryButton tone="green">Your Personal line</PrimaryButton>
                   </Link>
                 )}
+                {sub!.planKey === "morphs" && (
+                  <a href="https://www.instagram.com/feralmaxing/" target="_blank" rel="noopener noreferrer">
+                    <PrimaryButton tone="green">DM me on Instagram to receive your morphs →</PrimaryButton>
+                  </a>
+                )}
               </div>
             </div>
           ) : isPending ? (

@@ -85,6 +85,13 @@ export async function POST(req: NextRequest) {
     sql: "UPDATE invoices SET status='paid' WHERE order_id = ?",
     args: [row.order_id],
   });
+
+  // Product deliveries (e.g. morphs) get a subscription row too (so the
+  // "My plan" page can display them), but confirmPayment is skipped —
+  // the row stays active with no expiry and getActiveSubscription
+  // excludes 'morphs' from vault access.
+  const isProductDelivery = row.plan_key === "morphs";
+
   await createPendingSubscription({
     userId: row.user_id,
     orderId: row.order_id,
@@ -94,10 +101,18 @@ export async function POST(req: NextRequest) {
     net: "card",
     renewal: !!row.renewal,
   });
-  await confirmPayment(row.order_id, {
-    txHash: row.contract_id,
-    network: "lava",
-  });
+
+  if (isProductDelivery) {
+    await db.execute({
+      sql: "UPDATE subscriptions SET status='active', paid_at=datetime('now') WHERE order_id=?",
+      args: [row.order_id],
+    });
+  } else {
+    await confirmPayment(row.order_id, {
+      txHash: row.contract_id,
+      network: "lava",
+    });
+  }
 
   return NextResponse.json({ paid: true });
 }

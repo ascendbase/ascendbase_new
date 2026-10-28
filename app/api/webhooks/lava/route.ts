@@ -23,6 +23,10 @@ export const runtime = "nodejs";
  * On payment.success: find our invoices row by contractId, create the
  * pending subscription (renewal-aware) and confirm it — access opens
  * instantly with no admin step.
+ *
+ * FALLBACK: if the webhook doesn't fire (e.g. network issue, wrong URL),
+ * the client can call POST /api/checkout/lava/sync with the orderId and
+ * we check the contract status directly on Lava's API.
  */
 export async function POST(req: NextRequest) {
   await initDb();
@@ -111,6 +115,13 @@ export async function POST(req: NextRequest) {
   });
 
   const amount = Number(body.amount ?? row.amount) || row.amount;
+
+  // Product deliveries (e.g. morphs) get a subscription row too (so the
+  // "My plan" page can display them), but confirmPayment is skipped —
+  // the row stays active with no expiry and getActiveSubscription
+  // excludes 'morphs' from vault access.
+  const isProductDelivery = row.plan_key === "morphs";
+
   await createPendingSubscription({
     userId: row.user_id,
     orderId: row.order_id,
@@ -120,10 +131,19 @@ export async function POST(req: NextRequest) {
     net: "card",
     renewal: !!row.renewal,
   });
-  await confirmPayment(row.order_id, {
-    txHash: contractId,
-    network: "lava",
-  });
+
+  if (isProductDelivery) {
+    // Morphs: activate without expiry, no vault access.
+    await db.execute({
+      sql: "UPDATE subscriptions SET status='active', paid_at=datetime('now') WHERE order_id=?",
+      args: [row.order_id],
+    });
+  } else {
+    await confirmPayment(row.order_id, {
+      txHash: contractId,
+      network: "lava",
+    });
+  }
 
   return NextResponse.json({ ok: true, activated: true });
 }

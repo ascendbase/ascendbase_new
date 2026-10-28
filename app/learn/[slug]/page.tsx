@@ -224,7 +224,7 @@ export default async function LearnPost({
             <Link href="/ratios" className="group block">
               <GlassCard className="h-full transition-transform hover:-translate-y-1">
                 <h3 className="text-lg font-bold text-white/90 group-hover:text-red-glow">
-                  Try the free facial ratio calculator →
+                  Try the free facial ratios calculator →
                 </h3>
                 <p className="mt-1 text-sm text-white/55">
                   Upload a photo, get instant frontal, profile, and nose analysis.

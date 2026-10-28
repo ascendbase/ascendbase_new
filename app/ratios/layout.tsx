@@ -100,7 +100,7 @@ export default function RatiosLayout({ children }: { children: React.ReactNode }
           <Container className="py-10 text-center">
             <Badge tone="green">Free tool · No sign-up</Badge>
             <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
-              Facial Ratio Calculator
+              Facial Ratios Calculator
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-white/60">
               Measure your facial proportions against established aesthetic reference

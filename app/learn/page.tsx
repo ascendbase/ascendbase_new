@@ -103,7 +103,7 @@ export default async function LearnIndex() {
               </Link>{" "}
               or try the{" "}
               <Link href="/ratios" className="text-red-glow hover:underline">
-                free facial ratio calculator
+                free facial ratios calculator
               </Link>
               .
             </p>

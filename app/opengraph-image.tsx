@@ -32,7 +32,7 @@ export default function OG() {
           Male facial attractiveness, decoded
         </div>
         <div style={{ display: "flex", fontSize: 26, color: "rgba(255,255,255,0.45)", marginTop: 28 }}>
-          Free facial ratio calculator · Free looksmaxing vault
+          Free facial ratios calculator · Free looksmaxing vault
         </div>
       </div>
     ),

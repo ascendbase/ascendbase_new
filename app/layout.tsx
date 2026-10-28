@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "System-level knowledge on male facial attractiveness, craniofacial development, and personal facial evaluation (looksmaxing). Use the free facial ratio calculator, read the free vault, and unlock the full members-only deep-dives with crypto.",
+    "System-level knowledge on male facial attractiveness, craniofacial development, and personal facial evaluation (looksmaxing). Use the free facial ratios calculator, read the free vault, and unlock the full members-only deep-dives with crypto.",
   keywords: [
     "looksmaxing",
     "facial attractiveness",
@@ -40,14 +40,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description:
-      "Male facial attractiveness, decoded. Free facial ratio calculator, free vault posts, and members-only craniofacial deep-dives.",
+      "Male facial attractiveness, decoded. Free facial ratios calculator, free vault posts, and members-only craniofacial deep-dives.",
     images: [{ url: DEFAULT_OG_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description:
-      "Male facial attractiveness, decoded. Free facial ratio calculator + free looksmaxing vault.",
+      "Male facial attractiveness, decoded. Free facial ratios calculator + free looksmaxing vault.",
     images: [DEFAULT_OG_IMAGE],
     creator: "@feralmaxing",
   },

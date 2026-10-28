@@ -80,8 +80,8 @@ function TierCard({ p, planKey }: { p: typeof PLANS[number]; planKey: string | n
           </>
         ) : (
           <span className="text-3xl font-black">
-            {p.price}
-            <span className="text-base font-medium text-white/45"> USDT</span>
+            ${p.price}
+            <span className="text-base font-medium text-white/45"></span>
           </span>
         )}
       </div>

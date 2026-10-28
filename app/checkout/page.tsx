@@ -175,7 +175,7 @@ export default function CheckoutPage() {
                 <div className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-4">
                   <div className="flex items-center gap-2 text-sm font-bold text-white">
                     <span className="text-lg">🎁</span>
-                    FREE BONUS — PSL-accurate morph of your face
+                    FREE BONUS — 1 PSL-accurate morph of your face
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-white/55">
                     Subscribe, then DM me on Instagram to claim your custom

@@ -44,6 +44,22 @@ export const PLANS: Plan[] = [
     disabled: false,
   },
   {
+    key: "morphs",
+    name: "3 PSL-accurate Face Morphs",
+    price: 19,
+    days: 0,
+    type: "product",
+    description:
+      "See yourself at three intensity levels: HTN, Chadlite, and Chad — your genetic ceiling.",
+    features: [
+      "3 custom face morphs (HTN / Chadlite / Chad)",
+      "Built from YOUR actual facial structure — not AI-generated",
+      "Delivered within 48h — send your face pics via the Morphs page (top-right menu)",
+      "Prefer Instagram? Find the Connect page (top-right) and DM me there instead",
+    ],
+    cta: "Get my morphs",
+  },
+  {
     key: "advice",
     name: "Personal Looksmaxing Advice",
     price: 49,
@@ -80,22 +96,6 @@ export const PLANS: Plan[] = [
       "Full access to the gated vault while coaching is active",
     ],
     cta: "Unlock personal coaching",
-  },
-  {
-    key: "morphs",
-    name: "3 PSL Face Morphs",
-    price: 19,
-    days: 0,
-    type: "product",
-    description:
-      "See yourself at three intensity levels: HTN, Chadlite, and Chad — your genetic ceiling.",
-    features: [
-      "3 custom face morphs (HTN / Chadlite / Chad)",
-      "Built from YOUR actual facial structure",
-      "High quality, not AI-generated",
-      "Delivered within 48h via DM",
-    ],
-    cta: "Get my morphs",
   },
 ];
 

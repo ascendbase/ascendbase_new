@@ -81,18 +81,26 @@ export default function SubscriptionPage() {
                 </p>
               )}
               <div className="flex flex-wrap gap-2 pt-2">
-                <Link href="/dashboard">
-                  <PrimaryButton>Open the vault</PrimaryButton>
-                </Link>
-                {(sub!.planKey === "advice" || sub!.planKey === "coaching") && (
-                  <Link href="/support">
-                    <PrimaryButton tone="green">Your Personal line</PrimaryButton>
-                  </Link>
-                )}
-                {sub!.planKey === "morphs" && (
-                  <a href="https://www.instagram.com/feralmaxing/" target="_blank" rel="noopener noreferrer">
-                    <PrimaryButton tone="green">DM me on Instagram to receive your morphs →</PrimaryButton>
-                  </a>
+                {sub!.planKey === "morphs" ? (
+                  <>
+                    <a href="https://www.instagram.com/feralmaxing/" target="_blank" rel="noopener noreferrer">
+                      <PrimaryButton tone="green">DM me on Instagram to receive your morphs →</PrimaryButton>
+                    </a>
+                    <Link href="/support">
+                      <GhostButton>Or use the Morphs page (top-right menu)</GhostButton>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/dashboard">
+                      <PrimaryButton>Open the vault</PrimaryButton>
+                    </Link>
+                    {(sub!.planKey === "advice" || sub!.planKey === "coaching") && (
+                      <Link href="/support">
+                        <PrimaryButton tone="green">Your Personal line</PrimaryButton>
+                      </Link>
+                    )}
+                  </>
                 )}
               </div>
             </div>

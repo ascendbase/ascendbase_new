@@ -26,7 +26,9 @@ export default function SiteNav() {
   }, []);
 
   // "Personal" line is only for the 49 (advice) and 99 (coaching) tiers.
+  // "Morphs" is only for the 19 (morphs) product tier.
   const isPersonal = planKey === "advice" || planKey === "coaching";
+  const isMorphs = planKey === "morphs";
 
   // The "ascend" CTA targets checkout, mirroring the homepage CTA logic:
   //  - no paid plan (free / logged-out) -> /checkout
@@ -102,6 +104,10 @@ export default function SiteNav() {
               {isPersonal ? (
                 <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap py-1`}>
                   Personal
+                </Link>
+              ) : isMorphs ? (
+                <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap py-1`}>
+                  Morphs
                 </Link>
               ) : (
                 <Link href="/support" className={`${linkCls("/support")} whitespace-nowrap py-1`}>

@@ -54,7 +54,7 @@ export default function SupportPage() {
       if (
         sub &&
         sub.status === "active" &&
-        (sub.planKey === "advice" || sub.planKey === "coaching")
+        (sub.planKey === "advice" || sub.planKey === "coaching" || sub.planKey === "morphs")
       ) {
         const p = getPlan(sub.planKey);
         if (p) setPlanName(p.name);

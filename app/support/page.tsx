@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import { Container, GlassCard, PrimaryButton, Input, Label, Badge } from "@/components/ui";
@@ -22,6 +22,16 @@ export default function SupportPage() {
   const [upying, setUpying] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [planName, setPlanName] = useState<string | null>(null);
+  // Optimistic message delivery states: bubbles the user just sent, shown
+  // immediately while the server confirms persistence ("safely delivered").
+  type Pending = {
+    id: string;
+    body: string;
+    imageUrl: string | null;
+    status: "sending" | "delivered" | "failed";
+  };
+  const [pending, setPending] = useState<Pending[]>([]);
+  const listRef = useRef<HTMLDivElement>(null);
 
   async function uploadImage(file: File) {
     setUpying(true);
@@ -82,28 +92,77 @@ export default function SupportPage() {
   }
 
   async function send() {
-    if (!draft.trim() && !pendingImg) return;
+    if (busy || (!draft.trim() && !pendingImg)) return;
+    const body = draft;
+    const imageUrl = pendingImg;
+    const entry: Pending = {
+      id: `pending-${Date.now()}`,
+      body,
+      imageUrl,
+      status: "sending",
+    };
+    // Show the message immediately as "Delivering…".
+    setPending((p) => [...p, entry]);
+    setDraft("");
+    setPendingImg(null);
     setBusy(true);
-    const r = await fetch("/api/support", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        active
-          ? { threadId: active, body: draft, imageUrl: pendingImg }
-          : { subject, body: draft, imageUrl: pendingImg }
-      ),
-    });
-    setBusy(false);
-    if (r.ok) {
+    try {
+      const r = await fetch("/api/support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          active
+            ? { threadId: active, body, imageUrl }
+            : { subject, body, imageUrl }
+        ),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        throw new Error(d.error || "Send failed");
+      }
       const d = await r.json();
-      setDraft("");
-      setPendingImg(null);
+      // The server stored the message — confirm delivery in the UI.
+      setPending((p) =>
+        p.map((x) => (x.id === entry.id ? { ...x, status: "delivered" } : x))
+      );
       await refreshThreads();
       const tid = active || d.threadId;
-      if (tid) openThread(tid);
+      if (tid) {
+        setActive(tid);
+        const m = await fetch(`/api/support/${tid}`).then((res) =>
+          res.ok ? res.json() : null
+        );
+        if (m) setMessages(m.messages || []);
+      }
       setNewOpen(false);
+      // The persisted message is now loaded from the server, so the
+      // optimistic copy is no longer needed.
+      setPending((p) => p.filter((x) => x.id !== entry.id));
+    } catch {
+      // Delivery failed — keep the optimistic bubble as "failed" so the
+      // user can tap to retry, and restore the draft fields.
+      setPending((p) =>
+        p.map((x) => (x.id === entry.id ? { ...x, status: "failed" } : x))
+      );
+      setDraft(body);
+      setPendingImg(imageUrl);
+    } finally {
+      setBusy(false);
     }
   }
+
+  function retryPending(p: Pending) {
+    if (p.status !== "failed") return;
+    setPending((list) => list.filter((x) => x.id !== p.id));
+    setDraft(p.body);
+    setPendingImg(p.imageUrl);
+  }
+
+  // Keep the newest message visible (optimistic bubbles included).
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, pending]);
 
   if (!ready)
     return (
@@ -175,31 +234,76 @@ export default function SupportPage() {
                 />
               </div>
             )}
-            <div className="flex-1 space-y-2 overflow-y-auto">
-              {messages.length === 0 && (
+            <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto">
+              {messages.length === 0 && pending.length === 0 && (
                 <p className="text-sm text-white/40">Start the conversation…</p>
               )}
-              {messages.map((m) => (
+              {messages.map((m, i) => {
+                const isLast = i === messages.length - 1 && pending.length === 0;
+                return (
                 <div
                   key={m.id}
                   className={`flex ${
                     m.sender === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
-                      m.sender === "user" ? "btn-red" : "bg-white/10"
-                    }`}
-                  >
-                    {m.body && <p className="whitespace-pre-wrap">{m.body}</p>}
-                    {m.image_url && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={m.image_url}
-                        alt=""
-                        className="mt-2 max-h-60 rounded-xl object-cover"
-                      />
+                  <div className="max-w-[80%]">
+                    <div
+                      className={`max-w-full rounded-2xl px-3 py-2 text-sm ${
+                        m.sender === "user" ? "btn-red" : "bg-white/10"
+                      }`}
+                    >
+                      {m.body && <p className="whitespace-pre-wrap">{m.body}</p>}
+                      {m.image_url && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={m.image_url}
+                          alt=""
+                          className="mt-2 max-h-60 rounded-xl object-cover"
+                        />
+                      )}
+                    </div>
+                    {m.sender === "user" && isLast && (
+                      <p className="mt-0.5 text-right text-[11px] text-white/40">
+                        ✓ Delivered
+                      </p>
                     )}
+                  </div>
+                </div>
+                );
+              })}
+              {pending.map((p) => (
+                <div key={p.id} className="flex justify-end">
+                  <div className="max-w-[80%]">
+                    <div
+                      className={`max-w-full rounded-2xl px-3 py-2 text-sm ${
+                        p.status === "failed"
+                          ? "border border-red/50 bg-red/10 opacity-70"
+                          : "btn-red opacity-80"
+                      }`}
+                    >
+                      {p.body && <p className="whitespace-pre-wrap">{p.body}</p>}
+                      {p.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.imageUrl}
+                          alt=""
+                          className="mt-2 max-h-60 rounded-xl object-cover"
+                        />
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-right text-[11px] text-white/40">
+                      {p.status === "sending" && "Delivering…"}
+                      {p.status === "delivered" && "✓ Delivered"}
+                      {p.status === "failed" && (
+                        <button
+                          onClick={() => retryPending(p)}
+                          className="text-red-glow hover:underline"
+                        >
+                          Not delivered — tap to retry
+                        </button>
+                      )}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -248,6 +352,9 @@ export default function SupportPage() {
                 {busy ? "…" : "Send"}
               </PrimaryButton>
             </div>
+            <p className="mt-2 text-center text-[11px] text-white/35">
+              🔒 Sent securely — delivered straight to me the moment you hit Send.
+            </p>
           </GlassCard>
         </div>
       </Container>

@@ -27,6 +27,7 @@ export default function EmailTab() {
   const [ctaLabel, setCtaLabel] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [testEmail, setTestEmail] = useState("");
+  const [limit, setLimit] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -57,12 +58,12 @@ export default function EmailTab() {
     const r = await fetch("/api/admin/email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ segment, subject, text, title, ctaLabel, ctaUrl }),
+      body: JSON.stringify({ segment, subject, text, title, ctaLabel, ctaUrl, limit: limit ? Number(limit) : undefined }),
     });
     const d = await r.json();
     setBusy(false);
     setMsg(r.ok
-      ? `Broadcast sent: ${d.sent} delivered, ${d.failed} failed (of ${d.total}).`
+      ? `Broadcast sent: ${d.sent} delivered, ${d.failed} failed (of ${d.total}${d.skipped ? `, ${d.skipped} opted out` : ""}).${d.remaining ? ` ${d.remaining} still pending — run again tomorrow to continue the batch.` : ""}`
       : d.error || "Broadcast failed.");
     void load();
   }
@@ -119,6 +120,10 @@ export default function EmailTab() {
             <div className="min-w-56 flex-1">
               <Label>Send test to</Label>
               <Input value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="you@example.com" />
+            </div>
+            <div className="w-40">
+              <Label>Batch size</Label>
+              <Input value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="80" inputMode="numeric" />
             </div>
             <GhostButton onClick={sendTest} disabled={busy || !subject || !text}>Send test</GhostButton>
             <PrimaryButton tone="green" onClick={sendBroadcast} disabled={busy || !subject || !text}>

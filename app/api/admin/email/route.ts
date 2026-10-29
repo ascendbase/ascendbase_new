@@ -17,6 +17,7 @@ export const maxDuration = 60;
  * Admin broadcast emails (Email tab).
  * GET  → recent email log + audience counts
  * POST → send broadcast to a segment (all | free | paid | expired | test)
+ *        with resumable batching (limit + 7-day per-subject dedupe).
  */
 
 function fmtExpiry(s: string | null): number {
@@ -104,6 +105,8 @@ export async function POST(req: NextRequest) {
     ctaLabel?: string;
     ctaUrl?: string;
     testEmail?: string;
+    /** Max recipients per run — resumable batching (Resend free tier = 100/day, Vercel fn timeout 60s). */
+    limit?: number;
   };
   const segment = body.segment || "all";
   const subject = (body.subject || "").trim();
@@ -138,11 +141,26 @@ export async function POST(req: NextRequest) {
     return false;
   });
 
-  // Sequential sends with a delay — Resend free tier allows ~2 req/s.
-  let sent = 0, failed = 0;
+  // Resumable batching: skip everyone this exact subject was already
+  // successfully sent to within 7 days — re-running the same campaign
+  // continues where the previous run left off instead of double-sending.
+  const already = await db.execute({
+    sql: `SELECT DISTINCT email FROM email_log
+          WHERE subject = ? AND kind = 'broadcast' AND status = 'sent'
+            AND created_at > datetime('now', '-7 days')`,
+    args: [subject],
+  });
+  const sentSet = new Set(
+    already.rows.map((r) => (r as unknown as { email: string }).email)
+  );
+
+  let sent = 0, failed = 0, skipped = 0;
   const failures: { email: string; error?: string }[] = [];
-  for (const r of recipients) {
-    if (await isOptedOut(r.email)) continue;
+  const pending = recipients.filter((r) => !sentSet.has(r.email));
+  const limit = Math.max(1, Math.min(Number(body.limit) || pending.length, pending.length));
+  const batch = pending.slice(0, limit);
+  for (const r of batch) {
+    if (await isOptedOut(r.email)) { skipped++; continue; }
     const ok = await sendEmail({
       userId: r.userId,
       to: r.email,
@@ -152,6 +170,7 @@ export async function POST(req: NextRequest) {
       withUnsubscribe: true,
     });
     if (ok) sent++; else { failed++; failures.push({ email: r.email }); }
+    // Resend free tier: ~2 req/s. 80 sends ≈ 56s — under the 60s fn timeout.
     await new Promise((res) => setTimeout(res, 700));
   }
 
@@ -159,6 +178,9 @@ export async function POST(req: NextRequest) {
     ok: failed === 0,
     sent,
     failed,
-    total: recipients.length,
+    skipped,
+    total: batch.length,
+    remaining: Math.max(0, pending.length - batch.length),
   });
 }
+

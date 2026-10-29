@@ -143,6 +143,11 @@ export function welcomeEmailHtml(): string {
   <p style="margin:16px 0 0;font-size:13px;color:#888;line-height:1.6">
     Not ready yet? Score your face free first:
     <a href="${SITE_URL}/ratios" style="color:#4ade80">${SITE_URL.replace("https://", "")}/ratios</a>
+  </p>
+  <p style="margin:16px 0 0;font-size:12px;color:#777;line-height:1.6">
+    P.S. This address only emails when there's something actually worth your time.
+    Drag this email into your Primary tab (or add me to contacts) so future drops
+    don't get buried — and just hit reply if you have a question. I read every reply.
   </p>`;
 }
 
@@ -197,5 +202,9 @@ export function broadcastEmailHtml(
   return `
   <h1 style="margin:0 0 12px;font-size:22px;color:#fff">${title}</h1>
   <div style="line-height:1.7;color:#ccc">${bodyHtml.replace(/\n/g, "<br>")}</div>
-  ${cta}`;
+  ${cta}
+  <p style="margin:20px 0 0;font-size:12px;color:#777">
+    Hit reply if anything's unclear — I read every reply. (If this landed in your
+    Promotions tab, dragging it to Primary makes sure you catch the next free drop.)
+  </p>`;
 }

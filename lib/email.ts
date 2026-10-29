@@ -31,19 +31,28 @@ type SendArgs = {
 };
 
 /** Wrap content in a dark, brand-consistent HTML shell (inline styles only — email clients ignore CSS). */
-function shell(inner: string, unsubLink?: string): string {
+function shell(inner: string, unsubLink?: string, logId?: number): string {
   const unsub = unsubLink
     ? `<p style="margin:24px 0 0;text-align:center;font-size:11px;color:#666">
          <a href="${unsubLink}" style="color:#888">Don't want these emails?</a>
        </p>`
     : "";
+  // 1x1 open-tracking pixel (only when we have a log row to mark).
+  const pixel = logId
+    ? `<img src="${SITE_URL}/api/email-open?t=${logId}" width="1" height="1" alt="" style="display:block;border:0" />`
+    : "";
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0a0a0a;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
     <div style="background:#121212;border:1px solid #262626;border-radius:16px;padding:32px 28px;color:#e5e5e5;">
+      <div style="text-align:center;margin:0 0 20px;">
+        <img src="${SITE_URL}/email_logo.png" alt="${SITE_NAME}" width="120" style="display:block;margin:0 auto;border:0" />
+        <div style="margin-top:8px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#777">${SITE_NAME}</div>
+      </div>
       ${inner}
     </div>
     <p style="margin:20px 0 0;text-align:center;font-size:12px;color:#555">${SITE_NAME}</p>
     ${unsub}
+    ${pixel}
   </div>
 </body></html>`;
 }
@@ -53,14 +62,28 @@ export function unsubscribeToken(email: string): string {
   return Buffer.from(email).toString("base64url");
 }
 
-async function logEmail(userId: number | undefined, to: string, kind: EmailKind, subject: string, status: string, error?: string) {
+async function logEmail(userId: number | undefined, to: string, kind: EmailKind, subject: string, status: string, error?: string): Promise<number | null> {
   try {
-    await db.execute({
+    const r = await db.execute({
       sql: "INSERT INTO email_log (user_id, email, kind, subject, status, error) VALUES (?, ?, ?, ?, ?, ?)",
       args: [userId ?? null, to, kind, subject, status, error ?? null],
     });
+    return Number(r.lastInsertRowid) || null;
   } catch {
     // logging must never break sending
+    return null;
+  }
+}
+
+async function markEmailStatus(id: number | null, status: string, error?: string): Promise<void> {
+  if (!id) return;
+  try {
+    await db.execute({
+      sql: "UPDATE email_log SET status = ?, error = ? WHERE id = ?",
+      args: [status, error ?? null, id],
+    });
+  } catch {
+    // ignore
   }
 }
 
@@ -85,6 +108,8 @@ export async function sendEmail(a: SendArgs): Promise<boolean> {
     const unsubLink = a.withUnsubscribe
       ? `${SITE_URL}/api/unsubscribe?token=${unsubscribeToken(a.to)}`
       : undefined;
+    // Log row first so the email can embed its own open-tracking pixel.
+    const logId = await logEmail(a.userId, a.to, a.kind, a.subject, "queued");
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -93,17 +118,19 @@ export async function sendEmail(a: SendArgs): Promise<boolean> {
       },
       body: JSON.stringify({
         from: process.env.EMAIL_FROM,
+        // Replies land in the From mailbox (forwarded to the owner's inbox).
+        reply_to: process.env.EMAIL_FROM,
         to: [a.to],
         subject: a.subject,
-        html: shell(a.html, unsubLink),
+        html: shell(a.html, unsubLink, logId ?? undefined),
       }),
     });
     if (!res.ok) {
       const err = await res.text().catch(() => "");
-      await logEmail(a.userId, a.to, a.kind, a.subject, "failed", `HTTP ${res.status}: ${err.slice(0, 200)}`);
+      await markEmailStatus(logId, "failed", `HTTP ${res.status}: ${err.slice(0, 200)}`);
       return false;
     }
-    await logEmail(a.userId, a.to, a.kind, a.subject, "sent");
+    await markEmailStatus(logId, "sent");
     return true;
   } catch (e) {
     await logEmail(a.userId, a.to, a.kind, a.subject, "failed", String(e).slice(0, 200));

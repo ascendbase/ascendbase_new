@@ -75,13 +75,25 @@ export async function GET() {
   }
   const optouts = await db.execute({ sql: "SELECT COUNT(*) AS c FROM email_optouts", args: [] });
   const log = await db.execute({
-    sql: "SELECT email, kind, subject, status, error, created_at FROM email_log ORDER BY id DESC LIMIT 50",
+    sql: "SELECT email, kind, subject, status, error, opened, created_at FROM email_log ORDER BY id DESC LIMIT 50",
+    args: [],
+  });
+  const openedTotal = await db.execute({
+    sql: "SELECT COUNT(*) AS c FROM email_log WHERE opened = 1 AND kind = 'broadcast'",
+    args: [],
+  });
+  const broadcastTotal = await db.execute({
+    sql: "SELECT COUNT(*) AS c FROM email_log WHERE kind = 'broadcast' AND status = 'sent'",
     args: [],
   });
   return NextResponse.json({
     counts,
     optouts: Number((optouts.rows[0] as unknown as { c: number }).c),
     configured: emailConfigured(),
+    opens: {
+      opened: Number((openedTotal.rows[0] as unknown as { c: number }).c),
+      sent: Number((broadcastTotal.rows[0] as unknown as { c: number }).c),
+    },
     log: log.rows,
   });
 }

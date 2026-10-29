@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { GlassCard, PrimaryButton, GhostButton, Input, TextArea, Label, Badge } from "@/components/ui";
 
-type LogRow = { email: string; kind: string; subject: string; status: string; error: string | null; created_at: string };
+type LogRow = { email: string; kind: string; subject: string; status: string; error: string | null; opened: number; created_at: string };
 type Stats = {
   counts: { all: number; free: number; paid: number; expired: number };
   optouts: number;
   configured: boolean;
+  opens: { opened: number; sent: number };
   log: LogRow[];
 };
 
@@ -95,6 +96,12 @@ export default function EmailTab() {
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/70">
             opted out: <b className="text-white">{stats?.optouts ?? 0}</b>
           </span>
+          {stats?.opens && stats.opens.sent > 0 && (
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/70">
+              broadcast opens: <b className="text-white">{stats.opens.opened}/{stats.opens.sent}</b>{" "}
+              <span className="text-white/40">({Math.round((stats.opens.opened / stats.opens.sent) * 100)}%)</span>
+            </span>
+          )}
         </div>
       </GlassCard>
 
@@ -139,7 +146,7 @@ export default function EmailTab() {
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="text-white/40">
-              <tr><th className="py-1.5 pr-3">When</th><th className="py-1.5 pr-3">To</th><th className="py-1.5 pr-3">Kind</th><th className="py-1.5 pr-3">Subject</th><th className="py-1.5 pr-3">Status</th><th className="py-1.5">Error</th></tr>
+              <tr><th className="py-1.5 pr-3">When</th><th className="py-1.5 pr-3">To</th><th className="py-1.5 pr-3">Kind</th><th className="py-1.5 pr-3">Subject</th><th className="py-1.5 pr-3">Status</th><th className="py-1.5 pr-3">Opened</th><th className="py-1.5">Error</th></tr>
             </thead>
             <tbody>
               {(stats?.log ?? []).map((l, i) => (
@@ -149,11 +156,12 @@ export default function EmailTab() {
                   <td className="py-1.5 pr-3">{l.kind}</td>
                   <td className="py-1.5 pr-3 max-w-48 truncate">{l.subject}</td>
                   <td className="py-1.5 pr-3">{l.status}</td>
+                  <td className="py-1.5 pr-3">{l.opened ? <span className="text-green-glow">✓</span> : <span className="text-white/20">—</span>}</td>
                   <td className="py-1.5 max-w-40 truncate">{l.error ?? ""}</td>
                 </tr>
               ))}
               {!stats?.log?.length && (
-                <tr><td colSpan={6} className="py-3 text-white/40">No emails sent yet.</td></tr>
+                <tr><td colSpan={7} className="py-3 text-white/40">No emails sent yet.</td></tr>
               )}
             </tbody>
           </table>

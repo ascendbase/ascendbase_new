@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Wand2 } from 'lucide-react';
 
 /**
  * P1.4 conversion handoff on the calculator results screen.
@@ -61,11 +61,11 @@ export function ResultsHandoff() {
           <p className="text-sm leading-relaxed text-white/65">
             {state === 'visitor' ? (
               <>
-                Harmony \u2014 the balance of your facial ratios \u2014 plays roughly{" "}
-                <span className="font-semibold text-white">40\u201360%</span> of total
+                Harmony — the balance of your facial ratios — plays roughly{" "}
+                <span className="font-semibold text-white">40–60%</span> of total
                 importance in male facial attractiveness. It doesn't measure the
                 rest: bone structure, angularity, sexual dimorphism, skin and
-                framing \u2014 the features that finally determine where you actually
+                framing — the features that finally determine where you actually
                 land. The vault breaks all of it down.
               </>
             ) : (
@@ -77,7 +77,7 @@ export function ResultsHandoff() {
                 covers everything the calculator can't: your{" "}
                 <span className="font-semibold text-white">true overall rating</span>
                 , your individual flaw list, face morphs showing your potential,
-                and a concrete plan for what to actually improve \u2014 done personally
+                and a concrete plan for what to actually improve — done personally
                 by me, not generated.
               </>
             )}
@@ -103,18 +103,18 @@ export function ResultsHandoff() {
       <Card className="glass-card shadow-md border-white/20 mt-4">
         <CardContent className="pt-4 pb-4 px-4">
           <div className="flex items-center gap-2 text-sm font-bold text-white">
-            <span className="text-lg">P</span>
+            <Wand2 className="h-4 w-4 text-primary" />
             Wanna see yourself as HTN, Chadlite, and Chad?
           </div>
           <p className="mt-1.5 text-xs leading-relaxed text-white/55">
-            Get 3 PSL-accurate morphs built from YOUR actual facial structure \u2014
+            Get 3 PSL-accurate morphs built from YOUR actual facial structure —
             not AI-generated. Delivered within 48h.
           </p>
           <Link
             href="/checkout?plan=morphs"
             className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
           >
-            $19 \u2014 Get my 3 morphs
+            $19 — Get my 3 morphs
             <ArrowRight className="h-4 w-4" />
           </Link>
         </CardContent>

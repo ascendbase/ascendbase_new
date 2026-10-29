@@ -88,9 +88,12 @@ export default function DashboardPage() {
         router.replace("/login");
         return;
       }
+      const pk = me.subscription?.planKey || null;
+      const realPaidPlan =
+        !!pk && pk !== "free" && pk !== "morphs";
       const paid =
         me.user.role === "admin" ||
-        (me.subscription && me.subscription.status === "active");
+        (me.subscription?.status === "active" && realPaidPlan);
       // Renewal banner: show for paid members within 7 days of expiry and
       // for expired members (me reports status 'expired' for those).
       const expStr = me.subscription?.expiresAt || null;
@@ -252,11 +255,11 @@ export default function DashboardPage() {
                   )}
                   <div className="mt-3 space-y-3 rounded-2xl border border-green/30 bg-green/10 p-4 text-center">
                     <p className="text-sm text-white/70">
-                      ✨ That’s a preview. Unlock the full post with crypto.
+                      ✨ That’s a preview. Unlock the full post with full vault access.
                     </p>
                     <Link href="/checkout">
                       <PrimaryButton tone="green" className="px-5 py-2 text-sm">
-                        Unlock with crypto →
+                        Unlock full vault →
                       </PrimaryButton>
                     </Link>
                   </div>
@@ -328,7 +331,7 @@ export default function DashboardPage() {
             )}
             {!isPaid && (
               <p className="mt-1 text-sm text-white/50">
-                Free content is open. Unlock everything with crypto anytime.
+                Free content is open. Unlock everything with a card anytime.
               </p>
             )}
           </div>
@@ -355,7 +358,7 @@ export default function DashboardPage() {
               </div>
               <Link href="/checkout?renew=1">
                 <PrimaryButton tone="green" className="px-5 py-2 text-sm">
-                  Renew for {RENEW_PRICE} USDT →
+                  Renew for ${RENEW_PRICE} — pay by card →
                 </PrimaryButton>
               </Link>
             </div>
@@ -376,7 +379,7 @@ export default function DashboardPage() {
               </div>
               <Link href="/checkout?renew=1">
                 <PrimaryButton className="px-5 py-2 text-sm">
-                  Renew early — {RENEW_PRICE} USDT →
+                  Renew early — ${RENEW_PRICE} →
                 </PrimaryButton>
               </Link>
             </div>

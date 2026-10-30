@@ -113,7 +113,6 @@ export async function initDb() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
-  await migrateColumn("email_log", "opened", "INTEGER NOT NULL DEFAULT 0");
 
   // Renewal flag on invoices: when set, confirmPayment extends the member's
   // existing expiry instead of starting a fresh 30-day window.

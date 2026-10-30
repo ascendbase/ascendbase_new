@@ -31,16 +31,14 @@ type SendArgs = {
 };
 
 /** Wrap content in a dark, brand-consistent HTML shell (inline styles only — email clients ignore CSS). */
-function shell(inner: string, unsubLink?: string, logId?: number): string {
+function shell(inner: string, unsubLink?: string): string {
   const unsub = unsubLink
     ? `<p style="margin:24px 0 0;text-align:center;font-size:11px;color:#666">
          <a href="${unsubLink}" style="color:#888">Don't want these emails?</a>
        </p>`
     : "";
-  // 1x1 open-tracking pixel (only when we have a log row to mark).
-  const pixel = logId
-    ? `<img src="${SITE_URL}/api/email-open?t=${logId}" width="1" height="1" alt="" style="display:block;border:0" />`
-    : "";
+  // Open/click tracking is handled natively by Resend (enable it in the
+  // Resend dashboard under Domains → Configuration → Enable tracking metrics).
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0a0a0a;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px;">
     <div style="background:#121212;border:1px solid #262626;border-radius:16px;padding:32px 28px;color:#e5e5e5;">
@@ -52,7 +50,6 @@ function shell(inner: string, unsubLink?: string, logId?: number): string {
     </div>
     <p style="margin:20px 0 0;text-align:center;font-size:12px;color:#555">${SITE_NAME}</p>
     ${unsub}
-    ${pixel}
   </div>
 </body></html>`;
 }
@@ -108,7 +105,7 @@ export async function sendEmail(a: SendArgs): Promise<boolean> {
     const unsubLink = a.withUnsubscribe
       ? `${SITE_URL}/api/unsubscribe?token=${unsubscribeToken(a.to)}`
       : undefined;
-    // Log row first so the email can embed its own open-tracking pixel.
+    // Log row first (the admin Email tab reads it).
     const logId = await logEmail(a.userId, a.to, a.kind, a.subject, "queued");
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -122,7 +119,7 @@ export async function sendEmail(a: SendArgs): Promise<boolean> {
         reply_to: process.env.EMAIL_FROM,
         to: [a.to],
         subject: a.subject,
-        html: shell(a.html, unsubLink, logId ?? undefined),
+        html: shell(a.html, unsubLink),
       }),
     });
     if (!res.ok) {

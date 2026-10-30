@@ -44,7 +44,7 @@ function shell(inner: string, unsubLink?: string): string {
     <div style="background:#121212;border:1px solid #262626;border-radius:16px;padding:32px 28px;color:#e5e5e5;">
       <div style="text-align:center;margin:0 0 20px;">
         <img src="${SITE_URL}/email_logo.png" alt="${SITE_NAME}" width="120" style="display:block;margin:0 auto;border:0" />
-        <div style="margin-top:8px;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#777">${SITE_NAME}</div>
+
       </div>
       ${inner}
     </div>
@@ -145,6 +145,11 @@ export function welcomeEmailHtml(): string {
   <p style="margin:0 0 16px;line-height:1.7;color:#ccc">
     You now have free access to the vault — a curated set of looksmaxing fundamentals.
     But reading theory is the slow path.
+  </p>
+  <p style="margin:0 0 16px;line-height:1.7;color:#ccc">
+    One thing before you start: <b style="color:#fff">just hit reply to this email</b> if you
+    have any question about looksmaxing or where to begin. It lands directly in my
+    inbox — I read every reply and answer personally.
   </p>
   <p style="margin:0 0 16px;line-height:1.7;color:#ccc">
     What actually moves the needle is knowing <b style="color:#fff">what's wrong with YOUR face</b> —

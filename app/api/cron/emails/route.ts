@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
       ? `${daysLeft} days left in the vault — renew for $${RENEW_PRICE}`
       : "Your vault access expired — reopen for $7";
 
-    const ok = await sendEmail({
+    const r = await sendEmail({
       userId: row.user_id,
       to: row.email,
       subject,
@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
         : winbackEmailHtml(renewUrl),
       kind,
     });
-    if (ok) {
+    if (r.ok) {
       if (kind === "renewal_reminder") reminders++; else winbacks++;
       details.push({ email: row.email, kind, result: "sent" });
     } else {

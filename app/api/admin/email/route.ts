@@ -123,8 +123,8 @@ export async function POST(req: NextRequest) {
     if (!to || !to.includes("@")) {
       return NextResponse.json({ error: "A valid test email is required." }, { status: 400 });
     }
-    const ok = await sendEmail({ to, subject, html, kind: "broadcast", withUnsubscribe: true });
-    return NextResponse.json({ ok, sent: ok ? 1 : 0, total: 1 });
+    const r = await sendEmail({ to, subject, html, kind: "broadcast", withUnsubscribe: true });
+    return NextResponse.json({ ok: r.ok, sent: r.ok ? 1 : 0, total: 1, failures: r.ok ? [] : [{ email: to, error: r.error }] });
   }
 
   const audience = await loadAudience();
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
   const batch = pending.slice(0, limit);
   for (const r of batch) {
     if (await isOptedOut(r.email)) { skipped++; continue; }
-    const ok = await sendEmail({
+    const res = await sendEmail({
       userId: r.userId,
       to: r.email,
       subject,
@@ -169,9 +169,12 @@ export async function POST(req: NextRequest) {
       kind: "broadcast",
       withUnsubscribe: true,
     });
-    if (ok) sent++; else { failed++; failures.push({ email: r.email }); }
-    // Resend free tier: ~2 req/s. 80 sends ≈ 56s — under the 60s fn timeout.
-    await new Promise((res) => setTimeout(res, 700));
+    if (res.ok) sent++;
+    else { failed++; failures.push({ email: r.email, error: res.error }); }
+    // Resend free tier allows ~2 req/s. Keep each run well under the 60s
+    // Vercel function limit — the client UI auto-continues with more runs
+    // until `remaining` reaches 0, so no batch ever dies mid-send.
+    await new Promise((res) => setTimeout(res, 500));
   }
 
   return NextResponse.json({
@@ -180,6 +183,7 @@ export async function POST(req: NextRequest) {
     failed,
     skipped,
     total: batch.length,
+    failures,
     remaining: Math.max(0, pending.length - batch.length),
   });
 }

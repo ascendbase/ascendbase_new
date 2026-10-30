@@ -54,17 +54,51 @@ export default function EmailTab() {
   async function sendBroadcast() {
     const label = SEGMENTS.find((s) => s.key === segment)?.label || segment;
     if (!confirm(`Send to ${label} (${stats?.counts[segment] ?? "?"} recipients)? This cannot be undone.`)) return;
-    setBusy(true); setMsg("");
-    const r = await fetch("/api/admin/email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ segment, subject, text, title, ctaLabel, ctaUrl, limit: limit ? Number(limit) : undefined }),
-    });
-    const d = await r.json();
+    setBusy(true); setMsg("Sending…");
+    // Each server run must stay under Vercel's 60s function limit (~35 sends
+    // max), so we loop client-side: every run picks up where the last one
+    // left off (7-day per-subject dedupe prevents double-sends) and we keep
+    // going until the queue is drained. Resend free tier caps at 100/day —
+    // a 429 rate-limit failure ends the loop with a clear message.
+    const perRun = Math.min(Number(limit) || 35, 35);
+    let totalSent = 0, totalFailed = 0, totalSkipped = 0, remaining = -1;
+    for (let run = 0; run < 200; run++) {
+      let d: { sent?: number; failed?: number; skipped?: number; remaining?: number; error?: string; failures?: { email: string; error?: string }[] } = {};
+      try {
+        const r = await fetch("/api/admin/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ segment, subject, text, title, ctaLabel, ctaUrl, limit: perRun }),
+        });
+        d = await r.json();
+      } catch {
+        setMsg("Connection dropped mid-run — run the same broadcast again to continue (it resumes automatically).");
+        setBusy(false);
+        return;
+      }
+      if (d.error) { setMsg(d.error); setBusy(false); return; }
+      totalSent += d.sent || 0;
+      totalFailed += d.failed || 0;
+      totalSkipped += d.skipped || 0;
+      remaining = d.remaining ?? 0;
+      setMsg(`Sending… ${totalSent} delivered so far, ~${remaining} left in queue.`);
+      // Stop when the queue is drained, or when failures look like a daily
+      // cap / rate limit (Resend free tier = 100 sends/day).
+      if (remaining === 0) break;
+      const rateLimited = (d.failures || []).some((f) => /rate|limit|429|too many/i.test(f.error || ""));
+      if (rateLimited) {
+        setMsg(`Paused: Resend daily/rate limit hit after ${totalSent} sends. Re-run the same broadcast tomorrow (it resumes where it stopped).`);
+        setBusy(false);
+        void load();
+        return;
+      }
+      if (d.sent === 0 && d.failed === 0) break; // nothing left to do
+    }
     setBusy(false);
-    setMsg(r.ok
-      ? `Broadcast sent: ${d.sent} delivered, ${d.failed} failed (of ${d.total}${d.skipped ? `, ${d.skipped} opted out` : ""}).${d.remaining ? ` ${d.remaining} still pending — run again tomorrow to continue the batch.` : ""}`
-      : d.error || "Broadcast failed.");
+    setMsg(
+      `Broadcast done: ${totalSent} delivered, ${totalFailed} failed${totalSkipped ? `, ${totalSkipped} opted out` : ""}.` +
+      (remaining ? ` ${remaining} still pending — run again (Resend free tier caps at 100/day).` : "")
+    );
     void load();
   }
 

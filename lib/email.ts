@@ -92,14 +92,16 @@ export async function isOptedOut(email: string): Promise<boolean> {
   return r.rows.length > 0;
 }
 
-export async function sendEmail(a: SendArgs): Promise<boolean> {
+export async function sendEmail(
+  a: SendArgs
+): Promise<{ ok: boolean; error?: string }> {
   if (!emailConfigured()) {
     await logEmail(a.userId, a.to, a.kind, a.subject, "skipped", "email not configured");
-    return false;
+    return { ok: false, error: "email not configured" };
   }
   if (a.withUnsubscribe && (await isOptedOut(a.to))) {
     await logEmail(a.userId, a.to, a.kind, a.subject, "skipped", "opted out");
-    return false;
+    return { ok: false, error: "opted out" };
   }
   try {
     const unsubLink = a.withUnsubscribe
@@ -124,14 +126,16 @@ export async function sendEmail(a: SendArgs): Promise<boolean> {
     });
     if (!res.ok) {
       const err = await res.text().catch(() => "");
-      await markEmailStatus(logId, "failed", `HTTP ${res.status}: ${err.slice(0, 200)}`);
-      return false;
+      const msg = `HTTP ${res.status}: ${err.slice(0, 200)}`;
+      await markEmailStatus(logId, "failed", msg);
+      return { ok: false, error: msg };
     }
     await markEmailStatus(logId, "sent");
-    return true;
+    return { ok: true };
   } catch (e) {
-    await logEmail(a.userId, a.to, a.kind, a.subject, "failed", String(e).slice(0, 200));
-    return false;
+    const msg = String(e).slice(0, 200);
+    await logEmail(a.userId, a.to, a.kind, a.subject, "failed", msg);
+    return { ok: false, error: msg };
   }
 }
 

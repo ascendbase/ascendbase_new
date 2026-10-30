@@ -53,14 +53,18 @@ export default function EmailTab() {
 
   async function sendBroadcast() {
     const label = SEGMENTS.find((s) => s.key === segment)?.label || segment;
-    if (!confirm(`Send to ${label} (${stats?.counts[segment] ?? "?"} recipients)? This cannot be undone.`)) return;
-    setBusy(true); setMsg("Sending…");
     // Each server run must stay under Vercel's 60s function limit (~35 sends
     // max), so we loop client-side: every run picks up where the last one
     // left off (7-day per-subject dedupe prevents double-sends) and we keep
     // going until the queue is drained. Resend free tier caps at 100/day —
     // a 429 rate-limit failure ends the loop with a clear message.
     const perRun = Math.min(Number(limit) || 35, 35);
+    if (!confirm(
+      `This will send "${subject}" to the ${label} segment.\n` +
+      `Total recipients in segment: ${stats?.counts[segment] ?? "?"}\n` +
+      `This run sends up to ${perRun} per batch and auto-continues until the queue is drained (or the Resend daily limit is hit — 100/day on free tier).\n\nContinue?`
+    )) return;
+    setBusy(true); setMsg("Sending…");
     let totalSent = 0, totalFailed = 0, totalSkipped = 0, remaining = -1;
     for (let run = 0; run < 200; run++) {
       let d: { sent?: number; failed?: number; skipped?: number; remaining?: number; error?: string; failures?: { email: string; error?: string }[] } = {};

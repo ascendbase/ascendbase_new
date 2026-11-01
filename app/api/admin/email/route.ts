@@ -157,7 +157,40 @@ export async function POST(req: NextRequest) {
   let sent = 0, failed = 0, skipped = 0;
   const failures: { email: string; error?: string }[] = [];
   const pending = recipients.filter((r) => !sentSet.has(r.email));
-  const limit = Math.max(1, Math.min(Number(body.limit) || pending.length, pending.length));
+
+  // Daily budget: Resend free tier = 100 emails/day total. Transactional
+  // emails (welcome, renewal, winback — ~10/day, capped at 20) get priority
+  // over broadcasts, so broadcasts may use at most 80/day. Both counts come
+  // from today's email_log (UTC day).
+  const todayCount = await db.execute({
+    sql: `SELECT
+            SUM(CASE WHEN kind = 'broadcast' AND status = 'sent' THEN 1 ELSE 0 END) AS bc,
+            SUM(CASE WHEN kind != 'broadcast' AND status = 'sent' THEN 1 ELSE 0 END) AS tx
+          FROM email_log
+          WHERE created_at >= datetime('now', 'start of day')`,
+    args: [],
+  });
+  const t = todayCount.rows[0] as unknown as { bc: number | null; tx: number | null } | undefined;
+  const broadcastToday = Number(t?.bc ?? 0);
+  const transactionalToday = Math.min(Number(t?.tx ?? 0), 20);
+  const DAILY_BROADCAST_BUDGET = 100 - 20; // 80 — reserves room for ~10-20 transactional emails
+  const dailyRemaining = Math.max(0, DAILY_BROADCAST_BUDGET - broadcastToday);
+
+  if (dailyRemaining <= 0) {
+    // Budget exhausted — stop cleanly so broadcasts never eat into the
+    // transactional reserve (welcomes, renewals, winbacks). Unsent
+    // recipients retry on the next run (dedupe prevents re-sends).
+    return NextResponse.json({
+      ok: true, sent: 0, failed: 0, skipped: 0, total: 0, failures: [],
+      remaining: pending.length, budgetRemaining: 0, budgetHit: true,
+    });
+  }
+
+  const limit = Math.min(
+    Number(body.limit) || pending.length,
+    pending.length,
+    dailyRemaining
+  );
   const batch = pending.slice(0, limit);
   for (const r of batch) {
     if (await isOptedOut(r.email)) { skipped++; continue; }
@@ -170,7 +203,13 @@ export async function POST(req: NextRequest) {
       withUnsubscribe: true,
     });
     if (res.ok) sent++;
-    else { failed++; failures.push({ email: r.email, error: res.error }); }
+    else {
+      failed++;
+      failures.push({ email: r.email, error: res.error });
+      // Quota exhausted (429) — stop the whole run immediately. The
+      // recipient stays unsent and will be retried on the next run.
+      if (res.error?.includes("429")) break;
+    }
     // Resend free tier allows ~2 req/s. Keep each run well under the 60s
     // Vercel function limit — the client UI auto-continues with more runs
     // until `remaining` reaches 0, so no batch ever dies mid-send.
@@ -185,6 +224,8 @@ export async function POST(req: NextRequest) {
     total: batch.length,
     failures,
     remaining: Math.max(0, pending.length - batch.length),
+    budgetRemaining: Math.max(0, dailyRemaining - sent),
+    budgetHit: sent + failed + skipped >= dailyRemaining,
   });
 }
 

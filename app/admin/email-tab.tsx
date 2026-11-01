@@ -67,7 +67,7 @@ export default function EmailTab() {
     setBusy(true); setMsg("Sending…");
     let totalSent = 0, totalFailed = 0, totalSkipped = 0, remaining = -1;
     for (let run = 0; run < 200; run++) {
-      let d: { sent?: number; failed?: number; skipped?: number; remaining?: number; error?: string; failures?: { email: string; error?: string }[] } = {};
+      let d: { sent?: number; failed?: number; skipped?: number; remaining?: number; error?: string; budgetRemaining?: number; budgetHit?: boolean; failures?: { email: string; error?: string }[] } = {};
       try {
         const r = await fetch("/api/admin/email", {
           method: "POST",
@@ -86,9 +86,15 @@ export default function EmailTab() {
       totalSkipped += d.skipped || 0;
       remaining = d.remaining ?? 0;
       setMsg(`Sending… ${totalSent} delivered so far, ~${remaining} left in queue.`);
-      // Stop when the queue is drained, or when failures look like a daily
-      // cap / rate limit (Resend free tier = 100 sends/day).
+      // Stop when the queue is drained, the daily broadcast budget (80/day)
+      // is exhausted, or Resend reports a hard rate limit.
       if (remaining === 0) break;
+      if (d.budgetHit) {
+        setMsg(`Daily broadcast budget reached (80/day — 20 reserved for welcome/renewal emails). ${totalSent} sent today. Run the same broadcast again tomorrow — it resumes where it stopped.`);
+        setBusy(false);
+        void load();
+        return;
+      }
       const rateLimited = (d.failures || []).some((f) => /rate|limit|429|too many/i.test(f.error || ""));
       if (rateLimited) {
         setMsg(`Paused: Resend daily/rate limit hit after ${totalSent} sends. Re-run the same broadcast tomorrow (it resumes where it stopped).`);
@@ -101,7 +107,7 @@ export default function EmailTab() {
     setBusy(false);
     setMsg(
       `Broadcast done: ${totalSent} delivered, ${totalFailed} failed${totalSkipped ? `, ${totalSkipped} opted out` : ""}.` +
-      (remaining ? ` ${remaining} still pending — run again (Resend free tier caps at 100/day).` : "")
+      (remaining ? ` ${remaining} still pending — run again tomorrow (daily broadcast budget: 80).` : "")
     );
     void load();
   }

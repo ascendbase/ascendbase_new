@@ -4,7 +4,7 @@ import { getCurrentUser, getActiveSubscription } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   await initDb();
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
@@ -14,7 +14,13 @@ export async function GET() {
   // per-item in /api/content/[id] (paid/preview show a blurred teaser).
   // Return a lightweight tree: folders + post titles only. Post bodies/blocks
   // are NOT sent here — they are lazy-loaded via /api/content/[id] on open.
-  const where = user.role === "admin" ? "1=1" : "published = 1";
+  // Admin simulating the free tier (vault preview toggle) also loses the
+  // draft/publish bypass so the tree matches what a free member sees.
+  const simulateFree =
+    user.role === "admin" &&
+    req.cookies.get("simulate_free_tier")?.value === "1";
+  const where =
+    user.role === "admin" && !simulateFree ? "1=1" : "published = 1";
   const rows = await db.execute({
     sql: `SELECT id, slug, title, kind, parent_id, order_index, published, access
           FROM content WHERE ${where}

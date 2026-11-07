@@ -78,6 +78,11 @@ export default function DashboardPage() {
   const [openPost, setOpenPost] = useState<number | null>(null);
   const [postData, setPostData] = useState<Record<number, any>>({});
   const [postLoading, setPostLoading] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  // Admin self-preview: when on, the vault renders exactly what a free
+  // member sees. The flag lives in a cookie so the content APIs apply the
+  // REAL server-side gating (same code path a free member hits).
+  const [simulateFree, setSimulateFree] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -87,6 +92,15 @@ export default function DashboardPage() {
       if (!me || !me.user) {
         router.replace("/login");
         return;
+      }
+      const admin = me.user.role === "admin";
+      setIsAdmin(admin);
+      if (admin) {
+        setSimulateFree(
+          document.cookie
+            .split("; ")
+            .some((c) => c.startsWith("simulate_free_tier=1"))
+        );
       }
       const pk = me.subscription?.planKey || null;
       const realPaidPlan =
@@ -135,6 +149,22 @@ export default function DashboardPage() {
     }
     return map;
   }, [nodes]);
+
+  // Header/CTA state reflects the simulated tier so the admin sees the
+  // page exactly as a free member does (badge, subtitle, unlock button).
+  const effectivePaid = isPaid && !simulateFree;
+
+  function toggleSimulateFree() {
+    const next = !simulateFree;
+    setSimulateFree(next);
+    document.cookie = next
+      ? "simulate_free_tier=1; path=/; max-age=604800; samesite=lax"
+      : "simulate_free_tier=; path=/; max-age=0";
+    // Drop cached post bodies so reopened posts re-fetch under the new
+    // gating, and close the open post so it loads fresh on next click.
+    setPostData({});
+    setOpenPost(null);
+  }
 
   function toggleFolder(id: number) {
     setOpenFolders((prev) => {
@@ -320,31 +350,54 @@ export default function DashboardPage() {
       <Container className="py-12">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <Badge tone={isPaid ? "green" : "white"}>
-              {isPaid ? "Paid access" : "Free tier"}
+            <Badge tone={effectivePaid ? "green" : "white"}>
+              {effectivePaid ? "Paid access" : "Free tier"}
             </Badge>
             <h1 className="mt-3 text-3xl font-black tracking-tight">The Vault</h1>
-            {isPaid && accessUntil && (
+            {effectivePaid && accessUntil && (
               <p className="mt-1 text-sm text-white/50">
                 Open until {new Date(accessUntil).toLocaleDateString()}
               </p>
             )}
-            {!isPaid && (
+            {!effectivePaid && (
               <p className="mt-1 text-sm text-white/50">
                 Free content is open. Unlock everything with a card anytime.
               </p>
             )}
           </div>
-          {!isPaid ? (
+          {!effectivePaid ? (
             <Link href="/checkout">
               <PrimaryButton>Unlock full vault →</PrimaryButton>
             </Link>
           ) : null}
         </div>
 
+        {isAdmin && (
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={toggleSimulateFree}
+              className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition ${
+                simulateFree
+                  ? "border-green/50 bg-green/10 text-green-glow"
+                  : "border-white/15 text-white/60 hover:bg-white/5"
+              }`}
+            >
+              {simulateFree
+                ? "🧪 Free-tier preview: ON"
+                : "🧪 Free-tier preview: OFF"}
+            </button>
+            {simulateFree && (
+              <span className="text-xs text-white/40">
+                Viewing the vault as a free member — toggle off to restore
+                admin access.
+              </span>
+            )}
+          </div>
+        )}
+
         {err && <p className="mb-4 text-red-glow">{err}</p>}
 
-        {renewDays === "expired" && !isPaid && (
+        {renewDays === "expired" && !effectivePaid && (
           <GlassCard className="mb-4 border-red/40 bg-red/[0.06]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -364,7 +417,7 @@ export default function DashboardPage() {
             </div>
           </GlassCard>
         )}
-        {typeof renewDays === "number" && isPaid && (
+        {typeof renewDays === "number" && effectivePaid && (
           <GlassCard className="mb-4 border-green/30 bg-green/[0.06]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>

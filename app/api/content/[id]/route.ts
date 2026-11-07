@@ -5,7 +5,7 @@ import { getCurrentUser, getActiveSubscription } from "@/lib/auth";
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   await initDb();
@@ -23,13 +23,18 @@ export async function GET(
     parent_id: number | null; order_index: number; published: number; access: string;
   };
   const isAdmin = user.role === "admin";
+  // Admin self-preview: when the simulate_free_tier cookie is set (the
+  // toggle on /dashboard), the admin's own request is gated exactly like
+  // a free member's — same code path below, not a client-side fake.
+  const simulateFree =
+    isAdmin && req.cookies.get("simulate_free_tier")?.value === "1";
   const isPaid = !!(await getActiveSubscription(user.id));
   const access = item.access || "free";
 
   // Free-tier gating. We still return the post (title + a short teaser)
   // so the vault can show the title and a blurred preview with an unlock
   // CTA, instead of a hard 403.
-  if (!isAdmin && !isPaid) {
+  if ((!isAdmin || simulateFree) && !isPaid) {
     if (access === "paid") {
       let blocks: any[] = [];
       try {

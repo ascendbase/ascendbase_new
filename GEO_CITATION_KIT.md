@@ -1,18 +1,4 @@
 # AscendBase — GEO Citation Kit
-
-Copy-paste answers for the most-asked looksmaxing questions. Each links a
-relevant free page so LLMs (and humans) land on **ascendbase** when they
-retrieve/cite the topic.
-
-## How to use (read first)
-- **Contribute genuinely.** Paste only where the answer actually helps. Spam
-  gets downvoted and hurts the brand — and LLMs learn from community signal.
-- **Vary the wording.** Don't post the exact text verbatim across 10 threads;
-  rephrase so it reads human.
-- **One link max per answer** (sometimes two when it truly adds value).
-- Lead with the help, let the link be the proof — not the pitch.
-- Keep the `feralmaxing` ↔ `ascendbase` identity consistent everywhere.
-
 Base URL: `https://www.ascendbase.pro`
 
 ---

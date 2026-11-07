@@ -188,7 +188,7 @@ export default function Home() {
                 </a>
               </div>
               <p className="mt-4 text-sm text-white/40">
-                No card required · Free tier is open · Crypto only when you upgrade
+                No card required · Free tier is open · Pay by card when you upgrade
               </p>
             </div>
 

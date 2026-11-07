@@ -169,7 +169,7 @@ export default function Home() {
               </h1>
               <p className="mx-auto mt-5 max-w-2xl text-lg text-white/60 sm:text-xl">
                 The system-level knowledge based on the science behind facial attractiveness and
-                craniofacial development. Start free — upgrade with crypto only when
+                craniofacial development. Start free — upgrade only when
                 you want the full vault or personal solutions.
               </p>
               <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
@@ -188,7 +188,7 @@ export default function Home() {
                 </a>
               </div>
               <p className="mt-4 text-sm text-white/40">
-               Unlimited Automatic Facial Ratios Calcualtor is free to use · Limited looksmaxing vault is also open for free · Pay only when you actually want to ascend
+               Unlimited Automatic Facial Ratios Calcualtor is free to use · Limited Looksmaxing Vault is also open for free · Pay only when you actually want to ascend
               </p>
             </div>
 
@@ -359,8 +359,8 @@ export default function Home() {
                 Start free. Go deeper on your terms.
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-white/55">
-                Every account opens the free vault instantly. Upgrade with crypto
-                whenever you want the members-only deep-dives and personal help.
+                Every account opens the free vault instantly. Upgrade whenever you want the 
+                members-only deep-dives and personal help.
               </p>
             </div>
 

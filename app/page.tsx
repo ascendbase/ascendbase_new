@@ -188,7 +188,7 @@ export default function Home() {
                 </a>
               </div>
               <p className="mt-4 text-sm text-white/40">
-                No card required · Free tier is open · Pay by card when you upgrade
+               Unlimited Automatic Facial Ratios Calcualtor is free to use · Limited looksmaxing vault is also open for free · Pay only when you actually want to ascend
               </p>
             </div>
 

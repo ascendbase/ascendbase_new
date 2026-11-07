@@ -188,9 +188,9 @@ export default function Home() {
                 </a>
               </div>
               <div className="mx-auto mt-4 inline-block text-left text-sm text-white/40">
-                <p><span className="text-white/60">✳</span> Unlimited automatic facial ratios calculator — free to use</p>
-                <p className="mt-1"><span className="text-white/60">✳</span> Limited looksmaxing vault is also open for free</p>
-                <p className="mt-1"><span className="text-white/60">✳</span> Pay only when you actually want to ascend</p>
+                <p>• Unlimited automatic facial ratios calculator — free to use</p>
+                <p className="mt-1">• Limited looksmaxing vault is also open for free</p>
+                <p className="mt-1">• Pay only when you actually want to ascend</p>
               </div>
             </div>
 

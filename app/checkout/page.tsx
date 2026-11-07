@@ -201,7 +201,7 @@ export default function CheckoutPage() {
           )}
           {error && (<p className="mt-4 rounded-xl bg-red/15 px-3 py-2 text-sm text-red-glow">{error}</p>)}
         </GlassCard>
-        <p className="mt-4 text-center text-xs text-white/35">Payments safely handled by <a href="https://lava.top/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white/70 transition-colors">Lava.top Security &amp; Processing</a></p>
+        <p className="mt-4 text-center text-xs text-white/35">Payments safely handled by <a href="https://lava.top/" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:text-white/70 transition-colors">Lava.top Security &amp; Processing</a></p>
       </Container>
     </>
   );

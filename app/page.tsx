@@ -187,9 +187,11 @@ export default function Home() {
                   </GhostButton>
                 </a>
               </div>
-              <p className="mt-4 text-sm text-white/40">
-               Unlimited Automatic Facial Ratios Calcualtor is free to use · Limited Looksmaxing Vault is also open for free · Pay only when you actually want to ascend
-              </p>
+              <div className="mt-4 text-sm text-white/40">
+                <p>Unlimited automatic facial ratios calculator — free to use</p>
+                <p>Limited looksmaxing vault is also open for free</p>
+                <p>Pay only when you actually want to ascend</p>
+              </div>
             </div>
 
             {/* floating glass preview */}
@@ -439,7 +441,7 @@ export default function Home() {
               {[
                 { n: "01", t: "Sign up free", d: "Create your account with an email and password. Takes five seconds — no card." },
                 { n: "02", t: "Read the free vault", d: "Get the grasp on what actually matters here, not random TikTok-level info." },
-                { n: "03", t: "Go deeper (optional)", d: "Unlock members-only deep-dives and personal facial evaluation." },
+                { n: "03", t: "Go deeper (optional)", d: "Unlock members-only deep-dives, personal facial evaluation and coaching." },
               ].map((s) => (
                 <GlassCard key={s.n}>
                   <div className="text-red-glow text-2xl font-black">{s.n}</div>
